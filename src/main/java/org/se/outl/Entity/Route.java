@@ -13,4 +13,5 @@ public class Route {
     private  int routeId;
     private  String time;
     private  String description;
+    private String difficulty;
 }
