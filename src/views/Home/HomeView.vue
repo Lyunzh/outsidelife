@@ -1,0 +1,126 @@
+<template>
+  <div class="home">
+    <el-card class="category-tag" shadow="hover">
+      <button @click="goToBike">
+      <img :src=" "  class="category-image" style="width: 100%;"/>
+      </button>
+    </el-card>
+    <el-card class="category-tag" shadow="hover">
+      <button @click="goToBike">
+      <img :src="  "  class="category-image" style="width: 100%;"/>
+      </button>
+    </el-card>
+
+    <div class="spots-list">
+      <div v-for="spot in spots" :key="post.id" class="spot-card" @click="goToSpot(spot.spotId)">
+        <h3>{{ spot.name }}</h3>
+        <p class="post-preview">{{ post.content?.substring(0, 100) || '' }}...</p>
+        <div class="post-meta">
+          <span>{{ post.authorName }}</span>
+          <span>{{ post.releaseTime || '暂无时间' }}</span>
+          <div class="post-stats">
+            <span>👍 {{ post.likes || 0 }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</template>
+
+<script>
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { getCategories,getRecentPosts } from '@/apis/forum'
+import { basePicturesPath } from '@/utils/alldata';
+
+export default {
+  name: 'HomeView',
+  setup() {
+    const router = useRouter()
+    const posts = ref([])
+    const categories = ref([])
+
+    // 获取数据的方法
+    const fetchData = async () => {
+      try {
+        // 并行请求数据
+        const [categoriesRes, postsRes] = await Promise.all([
+          getCategories(),
+          getRecentPosts()
+        ])
+        
+        categories.value = categoriesRes.data.data
+        posts.value = postsRes.data.data
+
+        for(let one of categories.value){
+          one.imageUrl=basePicturesPath+one.imageUrl
+        }
+
+        console.log('Posts loaded:', posts.value)
+      } catch (error) {
+        console.error('获取数据失败:', error)
+        // 这里可以添加错误处理，比如显示错误提示
+      }
+    }
+
+    onMounted(() => {
+      fetchData()
+    })
+
+    const goToPost = (postId) => {
+      router.push(`/post/${postId}`)
+    }
+
+    const goToCategory = (categoryId) => {
+      router.push(`/category/${categoryId}`)
+    }
+
+    return {
+      posts,
+      categories,
+      goToPost,
+      goToCategory
+    }
+  }
+}
+</script>
+
+<style scoped>
+.home {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.search-bar {
+  margin-bottom: 20px;
+}
+
+.categories {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.posts-list {
+  display: grid;
+  gap: 20px;
+}
+
+.post-card {
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.post-meta {
+  display: flex;
+  justify-content: space-between;
+  color: #666;
+  font-size: 0.9em;
+}
+
+
+</style> 
