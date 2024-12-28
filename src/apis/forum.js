@@ -1,30 +1,25 @@
 import request from '../utils/request'
 
-export function getCategories(){
+
+
+export function getSpots(){
   return request({
     method: 'GET',
-    url: '/category',
+    url: '/spot',
   })
 }
 
-export function getRecentPosts(){
+export function getHikeSpots(){
   return request({
     method: 'GET',
-    url: '/HomeView/getPosts',
+    url: '/spot/hike',
   })
 }
 
-export function getPostsByCategory(categoryId){
+export function getBikeSpots(){
   return request({
     method: 'GET',
-    url: `/category/${categoryId}`,
-  })
-}
-
-export function getPostByTitle(title){
-  return request({
-    method: 'GET',
-    url: `/search/${title}`,
+    url: '/spot/bike',
   })
 }
 
