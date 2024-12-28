@@ -16,7 +16,7 @@ public class Team {
     private String description;
     private Date startTime;
     private Date endTime;
-    private int limitcnt;
+    private int limitCnt;
     private int currentNum;
     private String teamName;
 }
