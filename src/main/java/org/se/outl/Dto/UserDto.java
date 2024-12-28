@@ -15,4 +15,6 @@ public class UserDto {
     private String email;
     private String status;
     private String avatarUrl;
+    private String userId;
+    private String code;
 }

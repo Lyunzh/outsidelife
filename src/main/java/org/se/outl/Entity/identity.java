@@ -9,9 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class node {
-    private int nodeId;
-    private String name;
-    private String description;
-    private String imageUrl;
+public class identity {
+    private String email;
+    private String code;
 }
