@@ -1,70 +1,68 @@
 package org.se.outl.Service.impl;
 
 
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpSession;
+import org.mybatis.logging.Logger;
+import org.mybatis.logging.LoggerFactory;
+import org.se.outl.Mapper.MailMapper;
+import org.se.outl.Mapper.UserMapper;
 import org.se.outl.Service.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.Random;
 
 @Service
 public class MailServiceimpl implements MailService {
 
+    @Autowired
+    private MailMapper mailMapper;
 
     @Autowired
-    private JavaMailSenderImpl mailSender;
+    private JavaMailSenderImpl javaMailSender;
 
-    // application.properties配置的值
     @Value("${spring.mail.username}")
-    private String from;
+    private String sendMailer;
+    @Autowired
+    private UserMapper userMapper;
 
-    /**
-     * 给前端输入的邮箱，发送验证码
-     *
-     * @param email
-     * @return
-     */
     @Override
-    public boolean sendMail(String email, HttpSession session) {
+    public void sendTextMailMessage(String email,String subject,String text){
+
         try {
-            SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-            // 生成随机数
-            String code = randomCode();
+            //true 代表支持复杂的类型
+            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(javaMailSender.createMimeMessage(),true);
+            //邮件发信人
+            mimeMessageHelper.setFrom(sendMailer);
+            //邮件收信人  1或多个
+            mimeMessageHelper.setTo(email);
+            //邮件主题
+            mimeMessageHelper.setSubject(subject);
+            //邮件内容
+            mimeMessageHelper.setText(text);
+            //邮件发送时间
+            mimeMessageHelper.setSentDate(new Date());
 
-            // 将随机数放置到session中
-            session.setAttribute("email", email);
-            session.setAttribute("code", code);
+            //发送邮件
+            javaMailSender.send(mimeMessageHelper.getMimeMessage());
+            System.out.println("发送邮件成功："+sendMailer+"->"+email);
 
-            simpleMailMessage.setSubject("验证码邮件"); // 主题
-            simpleMailMessage.setText("您收到的验证码是：" + code); // 内容
-            simpleMailMessage.setFrom("2356304063@qq.com"); // 发件人
-            simpleMailMessage.setTo(email); // 收件人
-            mailSender.send(simpleMailMessage); // 发送
-
-            return true;
-        } catch (Exception e) {
+        } catch (MessagingException e) {
             e.printStackTrace();
-            return false;
+            System.out.println("发送邮件失败："+e.getMessage());
         }
     }
 
-    /**
-     * 随机生成6位数的验证码
-     *
-     * @return String code
-     */
     @Override
-    public String randomCode() {
-        StringBuilder str = new StringBuilder();
-        Random random = new Random();
-        for (int i = 0; i < 6; i++) {
-            str.append(random.nextInt(10));
-        }
-        return str.toString();
+    public void addIdentity(String email,String code)
+    {
+        mailMapper.userAdd(email,code);
     }
 }
 

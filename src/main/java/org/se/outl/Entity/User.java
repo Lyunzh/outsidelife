@@ -15,6 +15,5 @@ public class User {
     private String nickname;
     private String passwordHash;
     private String email;
-    private String status;
     private String avatarUrl;
 }

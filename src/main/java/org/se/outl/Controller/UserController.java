@@ -9,7 +9,6 @@ import org.se.outl.Service.UserService;
 import org.se.outl.util.JwtUtils;
 import org.se.outl.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -40,7 +39,8 @@ public class UserController {
         else{
             log.info("用户注册:{}",userDto);
             String eml = userDto.getEmail();
-            if(Objects.equals(s,userDto.getCode())) {
+            String code = userService.getCode(eml);
+            if(Objects.equals(userDto.getCode(),code)) {
 
                 User u = userService.userAdd(userDto);
 
