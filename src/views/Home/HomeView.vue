@@ -26,7 +26,6 @@
 <script>
 import { getSpots,getHikeSpots,getBikeSpots } from '@/apis/forum'
 import { basePicturesPath } from '@/utils/alldata';
-
 export default {
 
   name: 'HomeView',
@@ -67,9 +66,6 @@ export default {
   async mounted() {
     await this.getSpots()
   }
-
-    
-
 
 
 }

@@ -13,8 +13,8 @@
         <h3>路线节点</h3>
         <el-timeline>
           <el-timeline-item
-            v-for="(node, index) in route.nodes"
-            :key="index"
+            v-for="node in route.nodes"
+            :key="node.nodeId"
             :timestamp="node.time">
             {{ node.description }}
           </el-timeline-item>
