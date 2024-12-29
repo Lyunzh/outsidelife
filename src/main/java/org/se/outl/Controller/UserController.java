@@ -28,6 +28,35 @@ public class UserController {
     private MailService mailService;
 
 
+    @PostMapping("/login")
+    public Result login(@RequestBody UserDto userDto)
+    {
+        if(userDto.getAccount()==null||userDto.getPassword()==null||userDto.getAccount().isEmpty()||userDto.getPassword().isEmpty()){
+            return Result.error(0,"账号或密码为空");
+        }
+        else{
+            User e =userService.userlogin(userDto.getAccount(),userDto.getPassword());
+
+            log.info("用户登录1:{}",e);
+            //登录成功，生成并下发令牌
+            if(e!=null){
+                Map<String,Object> claims = new HashMap<>();
+                claims.put("userId",e.getUserId());
+                claims.put("identity","user");
+                String jwt=JwtUtils.generateJwt(claims);
+                log.info("用户登录2:{}",JwtUtils.parseJwt(jwt));
+                log.info("fasong");
+                return Result.success(1,jwt);
+            }
+
+            //登陆失败，返回错误信息
+
+
+            return Result.error(0,"账号或密码错误");
+        }
+    }
+
+
     @PostMapping("/register")
     public Result register(@RequestBody UserDto userDto) {
         User user = userService.userFindByEmail(userDto.getEmail());
@@ -51,6 +80,7 @@ public class UserController {
                     log.info(claims.toString());
 
                     String jwt = JwtUtils.generateJwt(claims);
+
                     return Result.success(1, jwt);
 
                 } else {
@@ -64,7 +94,7 @@ public class UserController {
         }
     }
 
-
+/**
     @PostMapping("/login")
     public Result login(@RequestBody UserDto userDto) {
         User user = userService.userFindByEmail(userDto.getEmail());
@@ -80,4 +110,5 @@ public class UserController {
             return Result.error(0,"用户为注册！");
         }
     }
+    **/
 }

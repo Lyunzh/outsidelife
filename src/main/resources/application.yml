@@ -28,6 +28,15 @@ spring:
     username: root
     password: Tongjidb2024
     driver-class-name: com.mysql.cj.jdbc.Driver
+    maxActive: 100
+
+    maxWait: 600000
+
+    timeBetweenEvictionRunsMillis: 60000
+    minEvictableIdleTimeMillis: 300000
+
+    maxEvictableIdleTimeMillis: 900000
+
   servlet:
     multipart:
       enabled: true

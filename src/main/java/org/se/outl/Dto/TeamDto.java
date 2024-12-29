@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.se.outl.Entity.Team;
 
-@Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

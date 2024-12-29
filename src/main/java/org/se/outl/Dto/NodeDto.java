@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import org.se.outl.Entity.Node;
 
 
-@Builder
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

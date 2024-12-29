@@ -23,6 +23,7 @@ public class SpotController {
         if(token == null) {
             return Result.error("请先登录");
         }
+        log.info("已发送地点");
         return Result.success(spotService.getRecentSpot());
     }
 

@@ -4,6 +4,7 @@ package org.se.outl.Controller;
 import lombok.extern.slf4j.Slf4j;
 import org.se.outl.AllData.GlobalData;
 import org.se.outl.Service.MailService;
+import org.se.outl.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,8 +18,9 @@ public class MailController {
     private MailService mailService;
 
     @RequestMapping("/email/{email}")
-    public void email(@PathVariable String email) {
+    public Result email(@PathVariable String email) {
         mailService.sendTextMailMessage(email,"certification code", GlobalData.getCode());
         mailService.addIdentity(email, GlobalData.getCode());
+        return Result.success();
     }
 }

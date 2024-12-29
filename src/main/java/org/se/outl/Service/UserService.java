@@ -7,4 +7,5 @@ public interface UserService {
     User userAdd(UserDto user);
     User userFindByEmail(String email);
     String getCode(String email);
+    User userlogin(String account, String password);
 }

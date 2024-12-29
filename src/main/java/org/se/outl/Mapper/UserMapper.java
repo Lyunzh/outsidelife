@@ -11,7 +11,7 @@ import org.se.outl.Entity.User;
 @Mapper
 public interface UserMapper {
 
-    @Insert("insert into user(email,password_hash,nickname,avatar_url) values (#{email},#{password},#{nickname},#{avatarUrl})")
+    @Insert("insert into user(email,password_hash,nickname,avatar_url,account) values (#{email},#{password},#{nickname},#{avatarUrl},#{account})")
     void userAdd(UserDto userDto);
 
 
@@ -20,4 +20,7 @@ public interface UserMapper {
 
     @Select("select i.code as code from identity i where email=#{email}")
     String getCode(@Param("email") String email);
+
+    @Select("select * from user where account= #{account}")
+    User findUserByAccount(@Param("account")String account);
 }

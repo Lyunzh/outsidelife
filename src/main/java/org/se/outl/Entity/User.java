@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 public class User {
     private int userId;
     private String nickname;
+    private String account;
     private String passwordHash;
     private String email;
     private String avatarUrl;

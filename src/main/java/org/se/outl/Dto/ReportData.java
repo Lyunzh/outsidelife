@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReportData {
+    private String teamName;
     private int teamId;
     private String description;
 

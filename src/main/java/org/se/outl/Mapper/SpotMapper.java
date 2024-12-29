@@ -14,10 +14,10 @@ public interface SpotMapper {
     @Select("select * from spot ")
     List<Spot> getRecentSpot();
 
-    @Select("select * from spot where type = 'bike'")
+    @Select("select * from spot where type = 'hike'")
     List<Spot> getHikeSpot();
 
-    @Select("select * from spot where type = 'hike'")
+    @Select("select * from spot where type = 'bike'")
     List<Spot> getBikeSpot();
 
 
