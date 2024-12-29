@@ -34,7 +34,7 @@
       </template>
 
       <div class="teams-list">
-        <el-card v-for="team in teams" :key="team.timeId" class="team-item">
+        <el-card v-for="team in teams" :key="team.teamId" class="team-item">
           <div class="team-info">
             <h3>{{ team.teamName }}</h3>
             <p>{{ team.description }}</p>

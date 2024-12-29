@@ -1,7 +1,6 @@
 import AdminCenterView from '@/views/AdminCenter/AdminCenterView.vue';
 import AdminLoginView from '@/views/AdminLogin/AdminLoginView.vue';
 import HomeView from '@/views/Home/HomeView.vue';
-import LayoutView from '@/views/Layout/LayoutView.vue';
 import SpotView from '@/views/Spot/SpotView.vue';
 import RouteView from '@/views/Route/RouteView.vue';
 import UserCenterView from '@/views/UserCenter/UserCenterView.vue';
@@ -17,27 +16,8 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'layout',
-      component: LayoutView,
-      meta:{authRequired:true},
-      children: [
-        {
-          path: '',
-          name: 'home',
-          component: HomeView
-        },
-        
-        {
-          path: 'spot/:id',
-          name: 'spot',
-          component: SpotView
-        },
-        {
-          path: 'search/:title',
-          name: 'search',
-          component: SearchView
-        }
-      ]
+      name: 'home',
+      component: HomeView
     },
     {
       path: '/usercenter/:userid',

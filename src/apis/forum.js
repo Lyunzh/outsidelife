@@ -5,7 +5,7 @@ import request from '../utils/request'
 export function getSpots(){
   return request({
     method: 'GET',
-    url: '/spot',
+    url: '/spot/list',
   })
 }
 

@@ -11,7 +11,7 @@
       </button>
     </el-card>
     <el-card class="spots-list">
-      <div :v-for="spot in spots" :key="spot.spotId" class="spot-card" @click="goToSpot(spot.spotId)">
+      <div v-for="spot in spots" :key="spot.spotId" class="spot-card" @click="goToSpot(spot.spotId)">
         <h3>{{ spot.spotName }}</h3>
         <p class="spot-preview">{{ spot.description?.substring(0, 20) || '' }}...</p>
         <div class="spot-meta">
@@ -24,91 +24,54 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { getSpots,getHikeSpots,getBikeSpots } from '@/apis/forum'
 import { basePicturesPath } from '@/utils/alldata';
 
 export default {
+
   name: 'HomeView',
-  setup() {
-    const router = useRouter()
-    const spots = ref([])
-
-    // 获取数据的方法
-    const fetchData = async () => {
-      try {
-        // 并行请求数据
-        const [spotres] = await Promise.all([
-          getSpots()
-        ])
+  data(){
+    return{
+      spots:[]
       
-        spots.value = spotres.data.data
 
-        for(let one of spots.value){
-          one.imageUrl=basePicturesPath+one.imageUrl
-        }
-
-        console.log('Posts loaded:', spots.value)
-      } catch (error) {
-        console.error('获取数据失败:', error)
-        // 这里可以添加错误处理，比如显示错误提示
+      
+    }
+  },
+  methods:{
+    async getSpots(){
+      const response = await getSpots()
+      this.spots=response.data.data
+      for(let one of this.spots){
+        one.imageUrl=basePicturesPath+one.imageUrl
+      }
+    },
+    goToSpot(spotId) {
+      this.$router.push(`/spot/${spotId}`)
+    },
+    async goToHike(){
+      const response = await getHikeSpots()
+      this.spots=response.data.data
+      for(let one of this.spots){
+        one.imageUrl=basePicturesPath+one.imageUrl
+      }
+    },
+    async goToBike(){
+      const response = await getBikeSpots()
+      this.spots=response.data.data
+      for(let one of this.spots){
+        one.imageUrl=basePicturesPath+one.imageUrl
       }
     }
-
-    onMounted(() => {
-      fetchData()
-    })
-
-    const goToSpot = (spotId) => {
-      router.push(`/spot/${spotId}`)
-    }
-
-    const goToHike = async () => {
-      try {
-        const [spotres] = await Promise.all([
-          getHikeSpots()
-        ])
-      
-        spots.value = spotres.data.data
-
-        for(let one of spots.value){
-          one.imageUrl=basePicturesPath+one.imageUrl
-        }
-
-        console.log('Posts loaded:', spots.value)
-      } catch (error) {
-        console.error('获取数据失败:', error)
-        // 这里可以添加错误处理，比如显示错误提示
-      }
-    }
-
-    const goToBike = async () => {
-      try {
-        const [spotres] = await Promise.all([
-          getBikeSpots()
-        ])
-      
-        spots.value = spotres.data.data
-
-        for(let one of spots.value){
-          one.imageUrl=basePicturesPath+one.imageUrl
-        }
-
-        console.log('Posts loaded:', spots.value)
-      } catch (error) {
-        console.error('获取数据失败:', error)
-        // 这里可以添加错误处理，比如显示错误提示
-      }
-    }
-
-    return {
-      spots,
-      goToSpot,
-      goToHike,
-      goToBike
-    }
+  },
+  async mounted() {
+    await this.getSpots()
   }
+
+    
+
+
+
 }
 </script>
 
