@@ -1,21 +1,17 @@
 package org.se.outl.Entity;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.sql.Date;
 
 @Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Team {
+public class RouteTeam {
+
+    private int routeId;
     private int teamId;
-    private String status;
-    private String description;
-    private Date endtime;
-    private int limitCnt;
-    private int currentNum;
-    private String teamName;
 }

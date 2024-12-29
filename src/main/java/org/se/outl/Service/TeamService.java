@@ -11,4 +11,6 @@ public interface TeamService {
     void joinTeam(int userId , int teamId);
 
     void createTeam(int userId,int routeId , Team team);
+
+    void reportTeam(int teamId,String description);
 }

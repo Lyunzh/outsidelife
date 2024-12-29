@@ -4,6 +4,7 @@ package org.se.outl.Controller;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Select;
+import org.se.outl.Dto.ReportData;
 import org.se.outl.Entity.Team;
 import org.se.outl.Service.TeamService;
 import org.se.outl.util.JwtUtils;
@@ -33,7 +34,8 @@ public class TeamController {
         token = token.substring(7);
         Claims claims = JwtUtils.parseJwt(token);
         int userId = claims.get("userId", Integer.class);
-        return Result.success(teamService.joinTeam(userId,teamId));
+        teamService.joinTeam(userId,teamId);
+        return Result.success();
     }
 
 
@@ -42,7 +44,17 @@ public class TeamController {
         token = token.substring(7);
         Claims claims = JwtUtils.parseJwt(token);
         int userId = claims.get("userId", Integer.class);
-        return Result.success(teamService.createTeam(userId,routeId,team));
+        teamService.createTeam(userId,routeId,team);
+        return Result.success();
+    }
+
+
+    @PostMapping("/report")
+    public Result report(@RequestParam("reportData") ReportData reportData) {
+        int teamId = reportData.getTeamId();
+        String description = reportData.getDescription();
+        teamService.reportTeam(teamId,description);
+        return Result.success();
     }
 
 

@@ -6,7 +6,8 @@ import org.se.outl.Entity.Team;
 import org.se.outl.Service.TeamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.se.outl.Mapper.TeamMapper;
+import org.se.outl.AllData.GlobalData;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,11 +48,16 @@ public class TeamServiceimpl implements TeamService {
     @Override
     public void createTeam(int userId , int routeId , Team team)
     {
-
         teamMapper.createTeam(userId,team);
         int timeId = teamMapper.getTeamId(team.getTeamName());
         teamMapper.bindRoute(routeId,timeId);
-        teamMapper.bindUser(userId,teamId);
+        teamMapper.bindUser(userId,timeId);
+    }
+
+    @Override
+    public void reportTeam(int teamId , String description){
+        teamMapper.setStatus(teamId,GlobalData.getPending());
+        teamMapper.addReport(teamId,description);
     }
 
 }
