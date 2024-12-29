@@ -64,7 +64,8 @@
 <script>
 import { ref } from 'vue';
 import { getSpotDetails , getSpotRoutes} from '@/apis/spot';
-import { basePicturePath } from '@/utils/alldata';
+import { basePicturesPath } from '@/utils/alldata';
+import { getUserIdentity } from '@/apis/identity';
   export default {  
   name: 'SpotView',
   data() {
@@ -76,7 +77,8 @@ import { basePicturePath } from '@/utils/alldata';
         description: ''
       },
       routes: ref([]),
-      routeId: null
+      routeId: null,
+      userIdentity: null
 
     }
   },
@@ -85,7 +87,7 @@ import { basePicturePath } from '@/utils/alldata';
       try{
         const response = await getSpotDetails(spotId);
         this.spot = response.data.data;
-        this.spot.imageUrl = basePicturePath + response.data.data.imageUrl;
+        this.spot.imageUrl = basePicturesPath + response.data.data.imageUrl;
       }catch(error){
         this.$message.error('获取景点数据失败');
       }
@@ -104,6 +106,11 @@ import { basePicturePath } from '@/utils/alldata';
       this.$router.push(`/route/${routeId}`);
     }
 
+  },
+
+  async fetchUserIdentity(){
+    const response = await getUserIdentity();
+    this.userIdentity = response.data.data;
   },
 
   created() {
