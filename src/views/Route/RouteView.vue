@@ -46,9 +46,15 @@
           <div class="team-actions">
             <el-button 
               type="primary" 
-              :disabled="team.currentMembers >= team.maxMembers"
+              :disabled="team.currentMembers >= team.maxMembers || team.isJoined"
               @click="joinTeam(team.id)">
-              {{ team.currentMembers >= team.maxMembers ? '人数已满' : '加入团队' }}
+              {{ team.currentMembers >= team.maxMembers ? '人数已满' : (team.isJoined ? '已加入' : '加入团队') }}
+            </el-button>
+            <el-button 
+              type="danger" 
+              plain
+              @click="showReportDialog(team)">
+              举报
             </el-button>
           </div>
         </el-card>
@@ -85,12 +91,43 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 添加举报对话框 -->
+    <el-dialog
+      title="举报团队"
+      v-model="reportDialogVisible"
+      width="500px">
+      <el-form :model="reportData" label-width="100px">
+        <el-form-item label="举报原因">
+          <el-select  placeholder="请选择举报原因">
+            <el-option label="虚假信息" value="fake_info" />
+            <el-option label="不当内容" value="inappropriate_content" />
+            <el-option label="违规行为" value="violation" />
+            <el-option label="其他原因" value="other" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="详细说明">
+          <el-input
+            type="textarea"
+            v-model="reportData.description"
+            rows="4"
+            placeholder="请详细描述举报原因">
+          </el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="reportDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitReport">提交举报</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { getRouteDetails } from '@/api/route';
-import { createTeam, getTeamsByRouteId, joinTeam} from '@/api/team';
+import { getRouteDetails } from '@/apis/route';
+import { createTeam, getTeamsByRouteId, joinTeam, reportTeam } from '@/apis/team';
 
 export default {
   name: 'RouteView',
@@ -110,6 +147,11 @@ export default {
         description: '',
         limitCnt: 2,
         endTime: null
+      },
+      reportDialogVisible: false,
+      reportData: {
+        teamId: null,
+        description: ''
       }
     }
   },
@@ -138,9 +180,8 @@ export default {
       this.fetchTeams(this.routeId);
     },
 
-
     async createTeam() {
-      const response = await createTeam(this.newTeam);
+      const response = await createTeam(this.newTeam,this.routeId);
       if(response.status===200){
         this.$message.success('创建团队成功');
       }else{
@@ -148,6 +189,32 @@ export default {
       }
       this.fetchTeams(this.routeId);
       this.createTeamDialogVisible = false;
+    },
+
+    showReportDialog(team) {
+      this.reportData.teamId = team.teamId;
+      this.reportDialogVisible = true;
+    },
+
+    async submitReport() {
+      try {
+        const response = await reportTeam(this.reportData);
+        if (response.status === 200) {
+          this.$message.success('举报已提交');
+          this.reportDialogVisible = false;
+          // 重置表单
+          this.reportData = {
+            teamId: null,
+            reason: '',
+            description: ''
+          };
+        } else {
+          this.$message.error('举报提交失败');
+        }
+      } catch (error) {
+        console.error('举报失败:', error);
+        this.$message.error('举报提交失败');
+      }
     }
   },
   mounted() {
@@ -157,12 +224,7 @@ export default {
 }
 </script>
 
-
-  
-
 <style scoped>
-
-
 .route-view {
   display: flex;
   flex-direction: column;
@@ -299,6 +361,14 @@ export default {
   .el-dialog {
     width: 90% !important;
   }
+}
+
+.team-actions .el-button + .el-button {
+  margin-left: 10px;
+}
+
+.el-select {
+  width: 100%;
 }
 </style>
 

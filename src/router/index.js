@@ -1,9 +1,9 @@
 import AdminCenterView from '@/views/AdminCenter/AdminCenterView.vue';
 import AdminLoginView from '@/views/AdminLogin/AdminLoginView.vue';
-import CategoryView from '@/views/Category/CategoryView.vue';
 import HomeView from '@/views/Home/HomeView.vue';
 import LayoutView from '@/views/Layout/LayoutView.vue';
 import SpotView from '@/views/Spot/SpotView.vue';
+import RouteView from '@/views/Route/RouteView.vue';
 import UserCenterView from '@/views/UserCenter/UserCenterView.vue';
 import UserHomepageView from '@/views/UserHomepage/UserHomepageView.vue';
 import UserLoginView from '@/views/UserLogin/UserLoginView.vue';
@@ -26,11 +26,7 @@ const router = createRouter({
           name: 'home',
           component: HomeView
         },
-        {
-          path: 'category/:id',
-          name: 'category',
-          component: CategoryView
-        },
+        
         {
           path: 'spot/:id',
           name: 'spot',
@@ -64,6 +60,11 @@ const router = createRouter({
       component: UserHomepageView,
     },
     {
+      path: '/route/:id',
+      name: 'route',
+      component: RouteView,
+    },
+    {
       path: '/userlogin',
       name: 'userlogin',
       component: UserLoginView,
@@ -93,11 +94,7 @@ const router = createRouter({
       name: 'spot',
       component: SpotView
     },
-    {
-      path: '/category/:id',
-      name: 'category',
-      component: CategoryView
-    },
+    
     {
       path: '/search/:keyword',
       name: 'Search',

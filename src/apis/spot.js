@@ -9,7 +9,7 @@ export function getSpotDetails(spotId){
 
 export function getSpotRoutes(spotId){
     return request({
-        url: `/route/${spotId}`,
+        url: `/route/all/${spotId}`,
         method: 'GET'
     })
 }

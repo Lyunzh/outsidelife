@@ -44,6 +44,7 @@
               </span>
               <span class="route-distance">
                 <i class="el-icon-map-location"></i>
+                <img :src="route.imageUrl" class="route-map" />
               </span>
               <span class="route-difficulty">
                 <i class="el-icon-warning"></i>
@@ -52,11 +53,6 @@
             </div>
             <div class="route-description">
               {{ route.description }}
-            </div>
-            <div class="route-steps">
-              <ol>
-                <li v-for="step in route.steps" :key="step">{{ step }}</li>
-              </ol>
             </div>
           </div>
         </el-collapse-item>
@@ -67,9 +63,9 @@
 
 <script>
 import { ref } from 'vue';
-import { getSpotDetails , getSpotRoutes} from '@/api/spotApi';
-import { basePicturePath } from '@/config/apiConfig';
-  export default {
+import { getSpotDetails , getSpotRoutes} from '@/apis/spot';
+import { basePicturePath } from '@/utils/alldata';
+  export default {  
   name: 'SpotView',
   data() {
     return {

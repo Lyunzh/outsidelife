@@ -11,7 +11,7 @@
       </button>
     </el-card>
     <el-card class="spots-list">
-      <div :v-for="spot in spots" :key="spot.id" class="spot-card" @click="goToSpot(spot.spotId)">
+      <div :v-for="spot in spots" :key="spot.spotId" class="spot-card" @click="goToSpot(spot.spotId)">
         <h3>{{ spot.spotName }}</h3>
         <p class="spot-preview">{{ spot.description?.substring(0, 20) || '' }}...</p>
         <div class="spot-meta">

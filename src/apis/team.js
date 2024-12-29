@@ -1,8 +1,8 @@
 import request from '@/utils/request'
 
-export function createTeam(newTeam){
+export function createTeam(newTeam,routeId){
   return request({
-    url: '/team/create',
+    url: `/team/create/${routeId}`,
     method: 'post',
     data: newTeam   
   })
@@ -21,3 +21,11 @@ export function getTeamsByRouteId(routeId){
     method: 'get'
   })
 }
+
+export const reportTeam = (reportData) => {
+  return request({
+    url: '/team/report',
+    method: 'post',
+    data: reportData
+  });
+};
