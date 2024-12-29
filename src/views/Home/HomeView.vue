@@ -41,8 +41,8 @@
 </template>
 
 <script>
-// import { getSpots,getHikeSpots,getBikeSpots } from '@/apis/forum'
-// import { basePicturesPath } from '@/utils/alldata';
+import { getSpots,getHikeSpots,getBikeSpots } from '@/apis/forum'
+import { basePicturesPath } from '@/utils/alldata';
 import AMapLoader from "@amap/amap-jsapi-loader";
 import { defineComponent } from "vue";
 
@@ -83,18 +83,19 @@ export default defineComponent({
   },
   methods:{
     async getSpots(){
-      // 原始数据库访问代码
-      /*
-      const response = await getSpots()
-      this.spots=response.data.data
-      for(let one of this.spots){
-        one.imageUrl=basePicturesPath+one.imageUrl
+      try {
+        const response = await getSpots();
+        this.spots = response.data.data;
+        for(let one of this.spots){
+          one.imageUrl = basePicturesPath + one.imageUrl;
+        }
+        await this.initMap();
+      } catch(error) {
+        this.$message.error('获取景点数据失败');
+        // 使用模拟数据
+        this.spots = this.mockSpots;
+        await this.initMap();
       }
-      */
-      
-      // 使用模拟数据
-      this.spots = this.mockSpots;
-      await this.initMap();
     },
 
     // 初始化地图
@@ -207,33 +208,35 @@ export default defineComponent({
     },
 
     async goToHike(){
-      // 原始数据库访问代码
-      /*
-      const response = await getHikeSpots()
-      this.spots=response.data.data
-      for(let one of this.spots){
-        one.imageUrl=basePicturesPath+one.imageUrl
+      try {
+        const response = await getHikeSpots();
+        this.spots = response.data.data;
+        for(let one of this.spots){
+          one.imageUrl = basePicturesPath + one.imageUrl;
+        }
+        await this.initMap();
+      } catch(error) {
+        this.$message.error('获取徒步景点数据失败');
+        // 使用模拟数据
+        this.spots = this.mockSpots.filter(spot => spot.category === "徒步");
+        await this.initMap();
       }
-      */
-      
-      // 使用模拟数据
-      this.spots = this.mockSpots.filter(spot => spot.category === "徒步");
-      await this.initMap();
     },
 
     async goToBike(){
-      // 原始数据库访问代码
-      /*
-      const response = await getBikeSpots()
-      this.spots=response.data.data
-      for(let one of this.spots){
-        one.imageUrl=basePicturesPath+one.imageUrl
+      try {
+        const response = await getBikeSpots();
+        this.spots = response.data.data;
+        for(let one of this.spots){
+          one.imageUrl = basePicturesPath + one.imageUrl;
+        }
+        await this.initMap();
+      } catch(error) {
+        this.$message.error('获取骑行景点数据失败');
+        // 使用模拟数据
+        this.spots = this.mockSpots.filter(spot => spot.category === "骑行");
+        await this.initMap();
       }
-      */
-      
-      // 使用模拟数据
-      this.spots = this.mockSpots.filter(spot => spot.category === "骑行");
-      await this.initMap();
     }
   },
 
