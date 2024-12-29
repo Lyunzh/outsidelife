@@ -9,14 +9,20 @@
           登录你的账户
         </div>
         <div class="inputf">
-          <input v-model="userlogin.account" type="text" placeholder="账号"/>
-          <span class="label">账号</span>
-          <div v-if="errors.loginAccount" class="error-message">{{ errors.loginAccount }}</div>
+          <input v-model="userlogin.nickname" type="text" placeholder="账号"/>
+          <span class="label">昵称</span>
+          <div v-if="errors.nickname" class="error-message">{{ errors.nickname }}</div>
         </div>
         <div class="inputf">
-          <input v-model="userlogin.password" type="text" placeholder="密码"/>
+          <input 
+            type="password"
+            class="input" 
+            v-model="userlogin.password" 
+            placeholder="密码"
+            @keyup.enter="login"
+          >
           <span class="label">密码</span>
-          <div v-if="errors.loginPassword" class="error-message">{{ errors.loginPassword }}</div>
+          <div v-if="errors.Password" class="error-message">{{ errors.Password }}</div>
         </div>
         <button @click="login" class="button1">登录</button>
       </div>
@@ -33,12 +39,11 @@
           <div v-if="errors.registerNickname" class="error-message">{{ errors.registerNickname }}</div>
         </div>
         <div class="inputf">
-          <input v-model="userregister.account" type="text" placeholder="账号"/>
-          <span class="label">账号</span>
-          <div v-if="errors.registerAccount" class="error-message">{{ errors.registerAccount }}</div>
-        </div>
-        <div class="inputf">
-          <input v-model="userregister.password" type="text" placeholder="密码"/>
+          <input 
+            v-model="userregister.password" 
+            type="password"
+            placeholder="密码"
+          />
           <span class="label">密码</span>
           <div v-if="errors.registerPassword" class="error-message">{{ errors.registerPassword }}</div>
         </div>
@@ -85,27 +90,26 @@ import { reactive } from 'vue';
 import { useRouter } from 'vue-router';  // 导入 useRouter
 import { loginuser } from '@/apis/login';  // 导入封装的 login API
 import {registeruser,sendCode} from "@/apis/register";
+import { ElMessage } from 'element-plus';
 
 const active = ref(1)
 // 获取 router 实例
 const router = useRouter();
 
 const userlogin = reactive({
-account:'',
+nickname:'',
 password:''
 });
 
 const userregister = reactive({
 code:'',
 nickname:'',
-account:'',
 password:'',
 email:'',
-avatarUrl:''
 })
 
 const errors = reactive({
-loginAccount: '',
+nickname: '',
 loginPassword: '',
 registerNickname: '',
 registerAccount: '',
@@ -115,39 +119,55 @@ registerEmail:'',
 
 // 验证登录表单
 function validateLoginForm() {
-errors.loginAccount = userlogin.account ? '' : '账号不能为空';
-errors.loginPassword = userlogin.password ? '' : '密码不能为空';
-return !errors.loginAccount && !errors.loginPassword;
+  errors.nickname = userlogin.nickname ? '' : '昵称不能为空';
+  errors.loginPassword = userlogin.password ? '' : '密码不能为空';
+  return !errors.nickname && !errors.loginPassword;
 }
 
 // 验证注册表单
 function validateRegisterForm() {
-errors.registerAccount = userregister.account ? '' : '账号不能为空';
-errors.registerPassword = userregister.password ? '' : '密码不能为空';
-errors.registerNickname = userregister.nickname ? '' : '昵称不能为空';
-errors.registerEmail= userregister.email ? '' : '邮箱不能为空';
-return !errors.registerAccount && !errors.registerPassword&&!errors.registerEmail&&!errors.registerNickname;
+  errors.registerNickname = userregister.nickname ? '' : '昵称不能为空';
+  errors.registerPassword = userregister.password ? '' : '密码不能为空';
+  errors.registerEmail = userregister.email ? '' : '邮箱不能为空';
+  return !errors.registerPassword && !errors.registerEmail && !errors.registerNickname;
 }
 
-function login(){
-if (validateLoginForm()){
-  console.log("用户输入信息为",userlogin);
-  loginuser(userlogin).then((response)=>{
-    console.log("获取信息为",response);
-    if(response.data.code===1){
-      console.log("登录成功");
-      localStorage.setItem("token",response.data.data);
-      router.push("/");
-    }else{
-      alert("账号或密码错误");
-      console.log("登录失败");
+async function login() {
+  if (validateLoginForm()) {
+    try {
+      console.log("发送登录请求，用户信息为", userlogin);
+      const response = await loginuser(userlogin);
+      
+      console.log("收到登录响应：", response);
+      
+      // 检查响应是否存在
+      if (!response) {
+        throw new Error('未收到服务器响应');
+      }
+
+      // 检查响应状态
+      if (response.status !== 200) {
+        throw new Error(`服务器响应状态码: ${response.status}`);
+      }
+
+      // 检查响应数据
+      if (!response.data) {
+        throw new Error('响应中没有数据');
+      }
+
+      if (response.data.code === 1) {
+        console.log("登录成功，token:", response.data.data);
+        localStorage.setItem("token", response.data.data);
+        router.push("/");
+      } else {
+        console.error("登录失败，错误信息：", response.data.msg);
+        ElMessage.error(response.data.msg || '账号或密码错误');
+      }
+    } catch (error) {
+      console.error("登录过程出错：", error);
+      ElMessage.error(error.message || '登录失败，请稍后重试');
     }
-
-  }).catch(error =>{
-    console.log("登录出错",error);
-  })
-}
-
+  }
 }
 
 function getCode(){

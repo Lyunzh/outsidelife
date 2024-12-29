@@ -11,7 +11,7 @@
         <div class="inputf">
           <input v-model="adminlogin.account" type="text" placeholder="账号"/>
           <span class="label">账号</span>
-          <div v-if="errors.loginAccount" class="error-message">{{ errors.loginAccount }}</div>
+          <div v-if="errors.nickname" class="error-message">{{ errors.nickname }}</div>
         </div>
         <div class="inputf">
           <input v-model="adminlogin.password" type="text" placeholder="密码"/>
@@ -86,7 +86,7 @@ const adminregister = reactive({
 })
 
 const errors = reactive({
-  loginAccount: '',
+  nickname: '',
   loginPassword: '',
   registerAccount: '',
   registerPassword: ''
@@ -94,9 +94,9 @@ const errors = reactive({
 
 // 验证登录表单
 function validateLoginForm() {
-  errors.loginAccount = adminlogin.account ? '' : '账号不能为空';
+  errors.nickname = adminlogin.account ? '' : '账号不能为空';
   errors.loginPassword = adminlogin.password ? '' : '密码不能为空';
-  return !errors.loginAccount && !errors.loginPassword;
+  return !errors.nickname && !errors.loginPassword;
 }
 
 // 验证注册表单

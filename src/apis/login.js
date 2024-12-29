@@ -1,11 +1,14 @@
-import request from '../utils/request'
+import request from '@/utils/request'
 
-export function loginuser(userlogin={}){
-    return request({
-        method: 'POST',
-        url: '/user/login',
-        data:userlogin
-    })
+export const loginuser = (data) => {
+  return request({
+    url: '/user/login',
+    method: 'post',
+    data: data,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
 }
 
 export function loginadmin(adminlogin={}){
