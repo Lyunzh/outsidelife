@@ -2,6 +2,7 @@ package org.se.outl.Controller;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.se.outl.Service.ReportService;
 import org.se.outl.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +16,7 @@ public class ReportController {
 
     @GetMapping("/list")
     public Result getReport() {
-        return reportService.getReport();
+        return Result.success(reportService.getReport());
     }
 
     @PostMapping("/active/{teamId}")
