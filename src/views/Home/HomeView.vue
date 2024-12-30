@@ -37,6 +37,9 @@
       </div>
       <div id="container"></div>
     </el-card>
+
+    <!-- 使用 AI 聊天组件 (使用短横线命名法) -->
+    <AIChat />
   </div>
 </template>
 
@@ -46,9 +49,13 @@ import { basePicturesPath } from '@/utils/alldata';
 import AMapLoader from "@amap/amap-jsapi-loader";
 import { defineComponent } from "vue";
 import { parseLocation } from '@/utils/coordTransform';
+import AIChat from '@/components/AIChat.vue';
 
 export default defineComponent({
   name: 'HomeView',
+  components: {
+    AIChat
+  },
   data(){
     return{
       spots:[],
@@ -128,7 +135,7 @@ export default defineComponent({
           showIndoorMap: false,
           showBuildingBlock: true,
           zoom: 16,
-          zooms: [10, 20],
+          zooms: [5, 20],
           center: centerPosition,  // 使用第一个景点的位置
         });
 
@@ -138,27 +145,47 @@ export default defineComponent({
         this.spots.forEach(spot => {
           console.log('Creating marker for:', spot.spotName);
           const position = parseLocation(spot.location);
-          const elasticMarker = new AMap.ElasticMarker({
-            position: position,
-            styles: [{
+          
+          // 创建默认图标配置
+          const defaultIcon = {
+            img: 'https://webapi.amap.com/theme/v1.3/markers/n/mark_b.png',  // 默认图标
+            size: [25, 34],  // 固定大小
+            anchor: "bottom-center"
+          };
+
+          // 尝试加载自定义图片
+          const img = new Image();
+          img.onload = () => {
+            elasticMarker.setStyle([{
               icon: {
+                ...defaultIcon,
                 img: spot.imageUrl,
-                size: [36, 36],
-                anchor: "bottom-center",
-                imageOffset: [0, 0],
-                fitZoom: 14,
-                clickable: true,
-                scaleFactor: 2,
-                maxScale: 2,
-                minScale: 1,
+                size: [36, 36],  // 自定义图片使用正方形尺寸
               },
               label: {
                 content: spot.spotName,
                 position: "BM",
-                minZoom: 15,
-              },
+                offset: [0, 5]  // 向下偏移以避免与图标重叠
+              }
+            }]);
+          };
+          img.src = spot.imageUrl;
+
+          const elasticMarker = new AMap.ElasticMarker({
+            position: position,
+            styles: [{
+              icon: defaultIcon,
+              label: {
+                content: spot.spotName,
+                position: "BM",
+                offset: [0, 5]
+              }
             }],
-            zoomStyleMapping: { 14: 0, 15: 0, 16: 0, 17: 0, 18: 0, 19: 0, 20: 0 },
+            zoomStyleMapping: {  // 确保在所有缩放级别使用相同样式
+              3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0,
+              11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0,
+              18: 0, 19: 0, 20: 0
+            }
           });
 
           // 添加点击事件

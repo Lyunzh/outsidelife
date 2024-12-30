@@ -334,33 +334,40 @@ export default {
           showIndoorMap: false,
           showBuildingBlock: true,
           zoom: 16,
-          zooms: [10, 20],
+          zooms: [5, 20],
           center: parseLocation(this.route.nodes[0].location) // 以第一个节点为中心
         });
 
         // 为每个节点创建标记
         this.route.nodes.forEach((node, index) => {
           const position = parseLocation(node.location);
+          
+          // 根据节点类型选择默认图标
+          const defaultIcon = {
+            img: index === 0 ? 
+              "https://webapi.amap.com/theme/v1.3/markers/n/start.png" :
+              index === this.route.nodes.length - 1 ? 
+              "https://webapi.amap.com/theme/v1.3/markers/n/end.png" :
+              "https://webapi.amap.com/theme/v1.3/markers/n/mark_r.png",
+            size: [25, 34],
+            anchor: "bottom-center"
+          };
+
           const marker = new AMap.ElasticMarker({
             position: position,
             styles: [{
-              icon: {
-                // 根据节点位置使用不同图标
-                img: index === 0 ? "https://a.amap.com/jsapi_demos/static/resource/img/start.png" :
-                     index === this.route.nodes.length - 1 ? "https://a.amap.com/jsapi_demos/static/resource/img/end.png" :
-                     "https://a.amap.com/jsapi_demos/static/resource/img/way.png",
-                size: [36, 36],
-                anchor: "bottom-center",
-                fitZoom: 14,
-                scaleFactor: 2,
-              },
+              icon: defaultIcon,
               label: {
                 content: `${index + 1}. ${node.spotName}`,
                 position: "BM",
-                minZoom: 15,
-              },
+                offset: [0, 5]
+              }
             }],
-            zoomStyleMapping: { 14: 0, 15: 0, 16: 0, 17: 0, 18: 0, 19: 0, 20: 0 },
+            zoomStyleMapping: {  // 确保在所有缩放级别使用相同样式
+              3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0,
+              11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0,
+              18: 0, 19: 0, 20: 0
+            }
           });
 
           // 添加点击事件
