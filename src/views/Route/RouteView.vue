@@ -48,7 +48,7 @@
             <h3>{{ team.teamName }}</h3>
             <p>{{ team.description }}</p>
             <div class="team-meta">
-              <span>人数：{{ team.currentMembers }}/{{ team.limitCnt }}</span>
+              <span>人数：{{ team.currentNum }}/{{ team.limitCnt }}</span>
               <span>出发时间：{{ team.endTime }}</span>
             </div>
           </div>

@@ -23,7 +23,6 @@
         <el-table-column label="操作" width="200">
           <template #default="scope">
             <el-button
-              v-if="scope.row.status === 'pending'"
               type="success"
               size="small"
               @click="active(scope.row.teamId)"
@@ -31,20 +30,11 @@
               解除举报
             </el-button>
             <el-button
-              v-if="scope.row.status === 'pending'"
               type="danger"
               size="small"
               @click="ban(scope.row.teamId)"
             >
               封禁团队
-            </el-button>
-            <el-button
-              v-if="scope.row.status !== 'pending'"
-              type="info"
-              size="small"
-              disabled
-            >
-              已处理
             </el-button>
           </template>
         </el-table-column>
@@ -85,15 +75,11 @@ export default {
 
     const fetchReports = async () => {
       try {
-        const response = await getReports({
-          page: currentPage.value,
-          pageSize: pageSize.value,
-          status: filterStatus.value
-        })
-        reports.value = response.data.data.list
-        total.value = response.data.data.total
+        const response = await getReports();
+        reports.value = response.data.data;
+        total.value = response.data.data.length;
       } catch (error) {
-        ElMessage.error('获取举报列表失败')
+        ElMessage.error('获取举报列表失败');
       }
     }
 
