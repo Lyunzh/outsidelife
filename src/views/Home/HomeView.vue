@@ -45,6 +45,7 @@ import { getSpots,getHikeSpots,getBikeSpots } from '@/apis/forum'
 import { basePicturesPath } from '@/utils/alldata';
 import AMapLoader from "@amap/amap-jsapi-loader";
 import { defineComponent } from "vue";
+import { parseLocation } from '@/utils/coordTransform';
 
 export default defineComponent({
   name: 'HomeView',
@@ -60,7 +61,7 @@ export default defineComponent({
           description: "古猗园是上海市著名的古典园林，位于松江区，建于明代...",
           imageUrl: "https://a.amap.com/jsapi_demos/static/resource/img/men3.png",
           category: "徒步",
-          location: [121.212401, 31.282552]
+          location: "121.212401, 31.282552"
         },
         {
           spotId: 2,
@@ -68,7 +69,7 @@ export default defineComponent({
           description: "佘山是上海市最高峰，海拔100米，是著名的登山胜地...",
           imageUrl: "https://a.amap.com/jsapi_demos/static/resource/img/tingzi.png",
           category: "徒步",
-          location: [121.218022, 31.280645]
+          location: "121.218022, 31.280645"
         },
         {
           spotId: 3,
@@ -76,7 +77,7 @@ export default defineComponent({
           description: "滨江森林公园是上海市最大的生态型森林公园，占地面积1000公顷...",
           imageUrl: "https://a.amap.com/jsapi_demos/static/resource/img/trees.png",
           category: "骑行",
-          location: [121.21748, 31.285429]
+          location: "121.21748, 31.285429"
         }
       ]
     }
@@ -87,6 +88,7 @@ export default defineComponent({
         const response = await getSpots();
         this.spots = response.data.data;
         for(let one of this.spots){
+          
           one.imageUrl = basePicturesPath + one.imageUrl;
         }
         await this.initMap();
@@ -130,8 +132,9 @@ export default defineComponent({
         // 为每个景点添加标记
         this.spots.forEach(spot => {
           console.log('Creating marker for:', spot.spotName);
+          const position = parseLocation(spot.location);
           const elasticMarker = new AMap.ElasticMarker({
-            position: spot.location,
+            position: position,
             styles: [{
               icon: {
                 img: spot.imageUrl,

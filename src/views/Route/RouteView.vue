@@ -141,6 +141,7 @@
 import { getRouteDetails } from '@/apis/route';
 import { createTeam, getTeamsByRouteId, joinTeam, reportTeam } from '@/apis/team';
 import AMapLoader from "@amap/amap-jsapi-loader";
+import { parseLocation } from '@/utils/coordTransform';
 
 export default {
   name: 'RouteView',
@@ -165,13 +166,13 @@ export default {
             {
               spotId: 1,
               spotName: "古猗园",
-              location: [121.212401, 31.282552],
+              location: "121.212401, 31.282552",
               description: "路线起点，古猗园大门"
             },
             {
               spotId: 2,
               spotName: "佘山",
-              location: [121.218022, 31.280645],
+              location: "121.218022, 31.280645",
               description: "路线终点，佘山景区入口"
             }
           ]
@@ -185,13 +186,13 @@ export default {
             {
               spotId: 2,
               spotName: "佘山",
-              location: [121.218022, 31.280645],
+              location: "121.218022, 31.280645",
               description: "路线起点，佘山景区入口"
             },
             {
               spotId: 3,
               spotName: "滨江森林公园",
-              location: [121.21748, 31.285429],
+              location: "121.21748, 31.285429",
               description: "路线终点，滨江森林公园入口"
             }
           ]
@@ -335,13 +336,14 @@ export default {
           showBuildingBlock: true,
           zoom: 16,
           zooms: [14, 20],
-          center: this.route.nodes[0].location // 以第一个节点为中心
+          center: parseLocation(this.route.nodes[0].location) // 以第一个节点为中心
         });
 
         // 为每个节点创建标记
         this.route.nodes.forEach((node, index) => {
+          const position = parseLocation(node.location);
           const marker = new AMap.ElasticMarker({
-            position: node.location,
+            position: position,
             styles: [{
               icon: {
                 // 根据节点位置使用不同图标
@@ -371,7 +373,7 @@ export default {
                        </div>`,
               offset: new AMap.Pixel(0, -30)
             });
-            infoWindow.open(this.map, node.location);
+            infoWindow.open(this.map, position);
           });
 
           this.markers.push(marker);
@@ -387,10 +389,10 @@ export default {
         // 规划路线
         if (this.route.nodes.length > 1) {
           driving.search(
-            this.route.nodes[0].location,  // 起点
-            this.route.nodes[this.route.nodes.length - 1].location,  // 终点
+            parseLocation(this.route.nodes[0].location),  // 起点
+            parseLocation(this.route.nodes[this.route.nodes.length - 1].location),  // 终点
             {
-              waypoints: this.route.nodes.slice(1, -1).map(node => node.location)  // 途经点
+              waypoints: this.route.nodes.slice(1, -1).map(node => parseLocation(node.location))  // 途经点
             },
             (status, result) => {
               if (status === 'complete') {
@@ -402,7 +404,7 @@ export default {
                            </div>`,
                   offset: new AMap.Pixel(0, -30)
                 });
-                infoWindow.open(this.map, this.route.nodes[0].location);
+                infoWindow.open(this.map, parseLocation(this.route.nodes[0].location));
               }
             }
           );

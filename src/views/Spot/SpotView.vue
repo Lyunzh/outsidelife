@@ -79,6 +79,7 @@ import AMapLoader from "@amap/amap-jsapi-loader";
 import { getSpotDetails , getSpotRoutes} from '@/apis/spot';
 import { basePicturesPath } from '@/utils/alldata';
 import { getUserIdentity } from '@/apis/identity';
+import { parseLocation } from '@/utils/coordTransform';
 
 export default {
   name: 'SpotView',
@@ -100,7 +101,7 @@ export default {
           spotId: 1,
           imageUrl: '/images/spots/guyiyuan.jpg',
           spotName: '古猗园',
-          location: [121.212401, 31.282552],
+          location: "121.212401, 31.282552",
           description: '古猗园是上海市著名的古典园林，位于松江区，建于明代。园内亭台楼阁错落有致，花木扶疏，是一处极具江南特色的园林。',
           category: '徒步',
           routes: [1, 2, 3]  // 关联的路线ID
@@ -109,7 +110,7 @@ export default {
           spotId: 2,
           imageUrl: '/images/spots/sheshan.jpg',
           spotName: '佘山',
-          location: [121.218022, 31.280645],
+          location: "121.218022, 31.280645",
           description: '佘山是上海市最高峰，海拔100米，是著名的登山胜地。山上有著名的佘山天主教堂，是上海市重要的宗教文化景观。',
           category: '徒步',
           routes: [1, 4, 2]
@@ -118,7 +119,7 @@ export default {
           spotId: 3,
           imageUrl: '/images/spots/binjiang.jpg',
           spotName: '滨江森林公园',
-          location: [121.21748, 31.285429],
+          location: "121.21748, 31.285429",
           description: '滨江森林公园是上海市最大的生态型森林公园，占地面积1000公顷，是市民休闲娱乐的好去处。',
           category: '骑行',
           routes: [2, 3, 1]
@@ -233,12 +234,12 @@ export default {
           showBuildingBlock: true,
           zoom: 16,
           zooms: [14, 20],
-          center: this.spot.location
+          center: parseLocation(this.spot.location)
         });
 
         // 创建当前景点的特殊标记
         const currentMarker = new AMap.ElasticMarker({
-          position: this.spot.location,
+          position: parseLocation(this.spot.location),
           styles: [{
             icon: {
               img: "https://a.amap.com/jsapi_demos/static/resource/img/tingzi.png",
@@ -268,7 +269,7 @@ export default {
                 const spot = this.spotPool.find(s => s.spotId === spotId);
                 if (spot) {
                   const marker = new AMap.ElasticMarker({
-                    position: spot.location,
+                    position: parseLocation(spot.location),
                     styles: [{
                       icon: {
                         img: "https://a.amap.com/jsapi_demos/static/resource/img/men3.png",
@@ -309,11 +310,11 @@ export default {
 
             // 规划路线
             driving.search(
-              startSpot.location,
-              endSpot.location,
+              parseLocation(startSpot.location),
+              parseLocation(endSpot.location),
               {
                 waypoints: spots.slice(1, -1).map(spotId =>
-                  this.spotPool.find(s => s.spotId === spotId).location
+                  parseLocation(this.spotPool.find(s => s.spotId === spotId).location)
                 )
               },
               (status, result) => {
@@ -327,7 +328,7 @@ export default {
                              </div>`,
                     offset: new AMap.Pixel(0, -30)
                   });
-                  infoWindow.open(this.map, startSpot.location);
+                  infoWindow.open(this.map, parseLocation(startSpot.location));
                 }
               }
             );
