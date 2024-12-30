@@ -35,10 +35,8 @@
         </div>
       </template>
       <el-collapse>
-        <!-- <el-collapse-item v-for="route in spot.routes" :key="route.id" :title="route.name">
-          <div @click="getRouteDetail(route.routeId)" class="route-info"> -->
         <el-collapse-item v-for="route in routes" :key="route.id" :title="route.name">
-          <div @click="getRouteDetail(route.id)" class="route-info">
+          <div @click="getRouteDetail(route.routeId)" class="route-info">
             <div class="route-basic-info">
               <span class="route-duration">
                 <i class="el-icon-time"></i>
@@ -60,26 +58,14 @@
         </el-collapse-item>
       </el-collapse>
     </el-card>
-
-    <!-- 添加地图容器 -->
-    <el-card class="map-container">
-      <template #header>
-        <div class="card-header">
-          <span>景点地图</span>
-        </div>
-      </template>
-      <div id="container"></div>
-    </el-card>
   </div>
 </template>
 
 <script>
 import { ref } from 'vue';
-import AMapLoader from "@amap/amap-jsapi-loader";
-import { getSpotDetails , getSpotRoutes} from '@/apis/spot';
+import { getSpotDetails, getSpotRoutes } from '@/apis/spot';
 import { basePicturesPath } from '@/utils/alldata';
 import { getUserIdentity } from '@/apis/identity';
-import { parseLocation } from '@/utils/coordTransform';
 
 export default {
   name: 'SpotView',
@@ -125,7 +111,7 @@ export default {
           routes: [2, 3, 1]
         }
       ],
-      // 路线数据池 - 只存储景点序列
+      // 路线数据池
       routePool: {
         1: [1, 2],    // 古猗园 -> 佘山
         2: [2, 3],    // 佘山 -> 滨江
@@ -136,9 +122,7 @@ export default {
         role: 'user',
         userId: 1,
         username: 'test_user'
-      },
-      map: null,
-      markers: []
+      }
     }
   },
   methods: {
@@ -207,146 +191,10 @@ export default {
         // 使用模拟数据
         this.userIdentity = this.mockUserIdentity;
       }
-    },
-
-    async initMap() {
-      // 设置安全密钥
-      window._AMapSecurityConfig = {
-        securityJsCode: "85c67bb02b04c0775ec33200f09cee35",
-      };
-
-      try {
-        const AMap = await AMapLoader.load({
-          key: "805421f5522082b95ad7d79e57065023",
-          version: "2.0",
-          plugins: ["AMap.Scale", "AMap.InfoWindow", "AMap.Driving", "AMap.ElasticMarker"],
-        });
-
-        // 初始化地图
-        this.map = new AMap.Map("container", {
-          mapStyle: "amap://styles/macaron",
-          viewMode: "3D",
-          resizeEnable: true,
-          turboMode: true,
-          forceVector: true,
-          defaultCursor: "pointer",
-          showIndoorMap: false,
-          showBuildingBlock: true,
-          zoom: 16,
-          zooms: [10, 20],
-          center: parseLocation(this.spot.location)
-        });
-
-        // 创建当前景点的特殊标记
-        const currentMarker = new AMap.ElasticMarker({
-          position: parseLocation(this.spot.location),
-          styles: [{
-            icon: {
-              img: "https://a.amap.com/jsapi_demos/static/resource/img/tingzi.png",
-              size: [48, 48],  // 更大的尺寸
-              anchor: "bottom-center",
-              fitZoom: 14,
-              scaleFactor: 2.5,  // 更大的缩放系数
-            },
-            label: {
-              content: this.spot.spotName,
-              position: "BM",
-              minZoom: 15,
-            },
-          }],
-          zoomStyleMapping: { 14: 0, 15: 0, 16: 0, 17: 0, 18: 0, 19: 0, 20: 0 },
-        });
-
-        this.markers.push(currentMarker);
-
-        // 为每个路线创建导航和标记
-        this.routes.forEach(route => {
-          const spots = route.spots;
-          if (spots.length > 1) {
-            // 为路线上的每个景点（除了当前景点）创建标记
-            spots.forEach(spotId => {
-              if (spotId !== Number(this.spotId)) {  // 跳过当前景点
-                const spot = this.spotPool.find(s => s.spotId === spotId);
-                if (spot) {
-                  const marker = new AMap.ElasticMarker({
-                    position: parseLocation(spot.location),
-                    styles: [{
-                      icon: {
-                        img: "https://a.amap.com/jsapi_demos/static/resource/img/men3.png",
-                        size: [36, 36],  // 普通尺寸
-                        anchor: "bottom-center",
-                        fitZoom: 14,
-                        scaleFactor: 2,  // 普通缩放系数
-                      },
-                      label: {
-                        content: spot.spotName,
-                        position: "BM",
-                        minZoom: 15,
-                      },
-                    }],
-                    zoomStyleMapping: { 14: 0, 15: 0, 16: 0, 17: 0, 18: 0, 19: 0, 20: 0 },
-                  });
-
-                  // 添加点击事件
-                  marker.on('click', () => {
-                    this.$router.push(`/spot/${spot.spotId}`);
-                  });
-
-                  this.markers.push(marker);
-                }
-              }
-            });
-
-            // 创建路线导航
-            const driving = new AMap.Driving({
-              map: this.map,
-              hideMarkers: true,  // 隐藏默认标记，使用我们自定义的标记
-              autoFitView: true
-            });
-
-            // 获取起点和终点的位置
-            const startSpot = this.spotPool.find(s => s.spotId === spots[0]);
-            const endSpot = this.spotPool.find(s => s.spotId === spots[spots.length - 1]);
-
-            // 规划路线
-            driving.search(
-              parseLocation(startSpot.location),
-              parseLocation(endSpot.location),
-              {
-                waypoints: spots.slice(1, -1).map(spotId =>
-                  parseLocation(this.spotPool.find(s => s.spotId === spotId).location)
-                )
-              },
-              (status, result) => {
-                if (status === 'complete') {
-                  const infoWindow = new AMap.InfoWindow({
-                    content: `<div style="padding:10px;">
-                              <h4>${route.name}</h4>
-                              <p>总距离：${(result.routes[0].distance / 1000).toFixed(2)}公里</p>
-                              <p>预计时间：${route.time}</p>
-                              <p>难度：${route.difficulty}</p>
-                             </div>`,
-                    offset: new AMap.Pixel(0, -30)
-                  });
-                  infoWindow.open(this.map, startSpot.location);
-                }
-              }
-            );
-          }
-        });
-
-        // 最后一次性添加所有标记
-        this.map.add(this.markers);
-        this.map.setFitView();
-
-      } catch (error) {
-        console.error('地图初始化失败:', error);
-      }
     }
   },
 
   created() {
-    // 使用 $route.params 获取路由参数
     const spotId = this.$route.params.id;
     this.spotId = spotId;
 
@@ -358,18 +206,10 @@ export default {
   },
 
   async mounted() {
-    if (this.spotId) {  // 只有在 ID 有效时才执行后续操作
+    if (this.spotId) {
       await this.fetchSpotData(this.spotId);
       await this.fetchSpotRoutes(this.spotId);
       await this.fetchUserIdentity();
-      await this.initMap();
-    }
-  },
-
-  beforeUnmount() {
-    if (this.map) {
-      this.map.destroy();
-      this.map = null;
     }
   }
 }
@@ -436,16 +276,5 @@ export default {
 .route-steps ol {
   padding-left: 20px;
   line-height: 1.8;
-}
-
-.map-container {
-  margin-bottom: 30px;
-}
-
-#container {
-  width: 100%;
-  height: 500px;
-  border-radius: 4px;
-  overflow: hidden;
 }
 </style>
