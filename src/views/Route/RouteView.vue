@@ -334,7 +334,7 @@ export default {
           showIndoorMap: false,
           showBuildingBlock: true,
           zoom: 16,
-          zooms: [14, 20],
+          zooms: [10, 20],
           center: parseLocation(this.route.nodes[0].location) // 以第一个节点为中心
         });
 
