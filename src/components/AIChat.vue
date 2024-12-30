@@ -2,13 +2,27 @@
   <div class="ai-chat-container" :class="{ 'chat-expanded': isExpanded }">
     <!-- 聊天图标/最小化按钮 -->
     <div class="chat-toggle" @click="toggleChat">
-      <i :class="isExpanded ? 'el-icon-close' : 'el-icon-chat-line-round'"></i>
+      <div v-if="!isExpanded" class="ai-icon">
+        <i class="el-icon-chat-line-round"></i>
+        <span class="ai-badge">AI</span>
+      </div>
+      <i v-else class="el-icon-minus"></i>
     </div>
 
     <!-- 聊天窗口 -->
     <div v-show="isExpanded" class="chat-window">
       <div class="chat-header">
-        <span>通义千问助手</span>
+        <div class="header-content">
+          <div class="header-left">
+            <i class="el-icon-chat-line-round"></i>
+            <span>通义千问 AI 助手</span>
+          </div>
+          <div class="header-right">
+            <span class="ai-tag">AI</span>
+            <i class="el-icon-minus minimize-button" @click.stop="toggleChat"></i>
+            <i class="el-icon-close close-button" @click.stop="closeChat"></i>
+          </div>
+        </div>
       </div>
       
       <div class="chat-messages" ref="messageContainer">
@@ -61,7 +75,15 @@ export default {
     toggleChat() {
       this.isExpanded = !this.isExpanded;
     },
-
+    closeChat() {
+      this.isExpanded = false;
+      this.messages = [
+        {
+          role: "assistant",
+          content: "您好！我是通义千问助手，有什么可以帮您的吗？"
+        }
+      ];
+    },
     async sendMessage() {
       if (!this.inputMessage.trim() || this.isLoading) return;
 
@@ -91,7 +113,6 @@ export default {
         });
       }
     },
-
     scrollToBottom() {
       const container = this.$refs.messageContainer;
       container.scrollTop = container.scrollHeight;
@@ -103,53 +124,140 @@ export default {
 <style scoped>
 .ai-chat-container {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
   z-index: 1000;
 }
 
 .chat-toggle {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background-color: #409EFF;
+  width: 60px;
+  height: 60px;
+  border-radius: 30px 0 0 30px; /* 修改为半圆形 */
+  background: linear-gradient(135deg, #409EFF, #007FFF);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+  box-shadow: -2px 0 12px rgba(0, 127, 255, 0.3);
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .chat-toggle:hover {
-  transform: scale(1.1);
+  width: 70px; /* 悬浮时稍微展开 */
+  box-shadow: -4px 0 16px rgba(0, 127, 255, 0.4);
 }
 
-.chat-toggle i {
-  font-size: 24px;
+.ai-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.ai-icon i {
+  font-size: 28px;
+  opacity: 0.9;
+}
+
+.ai-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #F56C6C;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(245, 108, 108, 0.4);
+  border: 2px solid white;
+  z-index: 1;
 }
 
 .chat-window {
   position: absolute;
-  bottom: 60px;
-  right: 0;
+  top: 50%;
+  right: 70px; /* 调整位置，与按钮有一定间距 */
+  transform: translateY(-50%);
   width: 350px;
   height: 500px;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  transition: all 0.3s ease;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
 }
 
 .chat-header {
   padding: 15px;
-  background: #409EFF;
+  background: linear-gradient(135deg, #409EFF, #007FFF);
   color: white;
   border-radius: 8px 8px 0 0;
-  font-weight: bold;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 0 5px;
+  position: relative;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 35px; /* 为关闭按钮留出空间 */
+  flex: 1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.ai-tag {
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.minimize-button,
+.close-button {
+  font-size: 18px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.minimize-button:hover,
+.close-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.close-button:hover {
+  transform: rotate(90deg);
 }
 
 .chat-messages {
@@ -196,43 +304,22 @@ export default {
   margin-bottom: 0;
 }
 
+/* 修改展开状态的按钮样式 */
 .chat-expanded .chat-toggle {
-  position: absolute;
-  top: -40px;
-  right: 0;
-  background-color: #f56c6c;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px 0 0 20px;
+  background: #F56C6C;
 }
 
-.chat-expanded .chat-toggle:hover {
-  background-color: #f78989;
+.chat-expanded .chat-toggle i {
+  font-size: 20px;
 }
 
-/* 添加动画效果 */
-.chat-window {
-  transform-origin: bottom right;
-  animation: slideIn 0.3s ease;
-}
-
-@keyframes slideIn {
-  from {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-/* 响应式设计 */
 @media (max-width: 768px) {
   .chat-window {
-    width: 90vw;
-    right: 5vw;
-  }
-  
-  .chat-toggle {
-    right: 5vw;
+    width: calc(100vw - 80px); /* 减去按钮宽度和一些间距 */
+    right: 70px;
   }
 }
 
@@ -252,5 +339,25 @@ export default {
 
 .chat-messages::-webkit-scrollbar-thumb:hover {
   background: #606266;
+}
+
+/* 确保聊天窗口在拖动时不会移动 */
+.chat-window {
+  position: absolute;
+  bottom: 60px;
+  right: 0;
+  transform-origin: bottom right;
+  pointer-events: auto;
+}
+
+/* 修改容器样式 */
+.ai-chat-container {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none; /* 防止干扰拖动 */
+}
+
+.ai-chat-container > * {
+  pointer-events: auto; /* 恢复子元素的事件 */
 }
 </style> 
