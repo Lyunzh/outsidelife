@@ -1,0 +1,53 @@
+server:
+  port: 8085
+
+spring:
+  mail:
+    # 发送者邮箱
+    username: 2356304063@qq.com
+    #申请到的授权码
+    password: vrsxbtwvppkcdhhg
+    # 配置 SMTP 服务器地址
+    host: smtp.qq.com
+    # 端口号465或587
+    port: 465
+    protocol: smtps
+    # 默认的邮件编码为UTF-8
+    default-encoding: UTF-8
+    # 配置SSL 加密工厂
+    properties:
+      mail:
+        smtp:
+          socketFactoryClass: javax.net.ssl.SSLSocketFactory
+          #表示开启 DEBUG 模式，这样，邮件发送过程的日志会在控制台打印出来，方便排查错误
+          debug: true
+          ssl: true
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://8.153.70.141:3306/SE
+    username: root
+    password: Tongjidb2024
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    maxActive: 100
+
+    maxWait: 600000
+
+    timeBetweenEvictionRunsMillis: 60000
+    minEvictableIdleTimeMillis: 300000
+
+    maxEvictableIdleTimeMillis: 900000
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+
+
+
+

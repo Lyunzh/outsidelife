@@ -35,10 +35,12 @@
         </div>
       </template>
       <el-collapse>
-        <!-- <el-collapse-item v-for="route in spot.routes" :key="route.id" :title="route.name">
-          <div @click="getRouteDetail(route.routeId)" class="route-info"> -->
-        <el-collapse-item v-for="route in routes" :key="route.id" :title="route.name">
-          <div @click="getRouteDetail(route.id)" class="route-info">
+        <el-collapse-item 
+          v-for="route in routes" 
+          :key="route.routeId"
+          :title="route.routeName"
+        >
+          <div @click="getRouteDetail(route.routeId)" class="route-info">
             <div class="route-basic-info">
               <span class="route-duration">
                 <i class="el-icon-time"></i>
@@ -79,7 +81,6 @@ import AMapLoader from "@amap/amap-jsapi-loader";
 import { getSpotDetails , getSpotRoutes} from '@/apis/spot';
 import { basePicturesPath } from '@/utils/alldata';
 import { getUserIdentity } from '@/apis/identity';
-import { parseLocation } from '@/utils/coordTransform';
 
 export default {
   name: 'SpotView',
@@ -101,7 +102,7 @@ export default {
           spotId: 1,
           imageUrl: '/images/spots/guyiyuan.jpg',
           spotName: '古猗园',
-          location: "121.212401, 31.282552",
+          location: [121.212401, 31.282552],
           description: '古猗园是上海市著名的古典园林，位于松江区，建于明代。园内亭台楼阁错落有致，花木扶疏，是一处极具江南特色的园林。',
           category: '徒步',
           routes: [1, 2, 3]  // 关联的路线ID
@@ -110,7 +111,7 @@ export default {
           spotId: 2,
           imageUrl: '/images/spots/sheshan.jpg',
           spotName: '佘山',
-          location: "121.218022, 31.280645",
+          location: [121.218022, 31.280645],
           description: '佘山是上海市最高峰，海拔100米，是著名的登山胜地。山上有著名的佘山天主教堂，是上海市重要的宗教文化景观。',
           category: '徒步',
           routes: [1, 4, 2]
@@ -119,7 +120,7 @@ export default {
           spotId: 3,
           imageUrl: '/images/spots/binjiang.jpg',
           spotName: '滨江森林公园',
-          location: "121.21748, 31.285429",
+          location: [121.21748, 31.285429],
           description: '滨江森林公园是上海市最大的生态型森林公园，占地面积1000公顷，是市民休闲娱乐的好去处。',
           category: '骑行',
           routes: [2, 3, 1]
@@ -210,36 +211,46 @@ export default {
     },
 
     async initMap() {
-      // 设置安全密钥
-      window._AMapSecurityConfig = {
-        securityJsCode: "85c67bb02b04c0775ec33200f09cee35",
-      };
-
       try {
+        // 确保在组件挂载后再初始化地图
+        if (!document.getElementById('container')) {
+          console.error('地图容器不存在');
+          return;
+        }
+
+        // 设置安全密钥
+        window._AMapSecurityConfig = {
+          securityJsCode: "85c67bb02b04c0775ec33200f09cee35",
+        };
+
         const AMap = await AMapLoader.load({
           key: "805421f5522082b95ad7d79e57065023",
           version: "2.0",
           plugins: ["AMap.Scale", "AMap.InfoWindow", "AMap.Driving", "AMap.ElasticMarker"],
         });
 
+        // 确保地图实例存在时才销毁
+        if (this.map) {
+          this.map.destroy();
+        }
+
         // 初始化地图
         this.map = new AMap.Map("container", {
           mapStyle: "amap://styles/macaron",
           viewMode: "3D",
-          resizeEnable: true,
-          turboMode: true,
-          forceVector: true,
-          defaultCursor: "pointer",
-          showIndoorMap: false,
-          showBuildingBlock: true,
           zoom: 16,
-          zooms: [14, 20],
-          center: parseLocation(this.spot.location)
+          center: this.spot.location || [121.212401, 31.282552], // 添加默认中心点
         });
+
+        // 添加标记前清除旧标记
+        if (this.markers.length > 0) {
+          this.map.remove(this.markers);
+          this.markers = [];
+        }
 
         // 创建当前景点的特殊标记
         const currentMarker = new AMap.ElasticMarker({
-          position: parseLocation(this.spot.location),
+          position: this.spot.location,
           styles: [{
             icon: {
               img: "https://a.amap.com/jsapi_demos/static/resource/img/tingzi.png",
@@ -269,7 +280,7 @@ export default {
                 const spot = this.spotPool.find(s => s.spotId === spotId);
                 if (spot) {
                   const marker = new AMap.ElasticMarker({
-                    position: parseLocation(spot.location),
+                    position: spot.location,
                     styles: [{
                       icon: {
                         img: "https://a.amap.com/jsapi_demos/static/resource/img/men3.png",
@@ -310,11 +321,11 @@ export default {
 
             // 规划路线
             driving.search(
-              parseLocation(startSpot.location),
-              parseLocation(endSpot.location),
+              startSpot.location,
+              endSpot.location,
               {
                 waypoints: spots.slice(1, -1).map(spotId =>
-                  parseLocation(this.spotPool.find(s => s.spotId === spotId).location)
+                  this.spotPool.find(s => s.spotId === spotId).location
                 )
               },
               (status, result) => {
@@ -328,7 +339,7 @@ export default {
                              </div>`,
                     offset: new AMap.Pixel(0, -30)
                   });
-                  infoWindow.open(this.map, parseLocation(startSpot.location));
+                  infoWindow.open(this.map, startSpot.location);
                 }
               }
             );
@@ -358,16 +369,22 @@ export default {
   },
 
   async mounted() {
-    if (this.spotId) {  // 只有在 ID 有效时才执行后续操作
-      await this.fetchSpotData(this.spotId);
-      await this.fetchSpotRoutes(this.spotId);
-      await this.fetchUserIdentity();
-      await this.initMap();
+    if (this.spotId) {
+      try {
+        await this.fetchSpotData(this.spotId);
+        await this.fetchSpotRoutes(this.spotId);
+        await this.initMap();
+      } catch (error) {
+        console.error('初始化失败:', error);
+      }
     }
   },
 
   beforeUnmount() {
     if (this.map) {
+      if (this.markers.length > 0) {
+        this.map.remove(this.markers);
+      }
       this.map.destroy();
       this.map = null;
     }

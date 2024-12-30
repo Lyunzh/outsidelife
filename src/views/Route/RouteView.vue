@@ -2,8 +2,7 @@
   <div class="route-container">
     <!-- 路线基本信息 -->
     <el-card class="route-info-card">
-      <h2>{{ route.routeName }}</h2>
-      <p class="route-description">{{ route.routeDescription }}</p>
+      <p class="route-description">{{ route.description }}</p>
       <div class="route-meta">
         <span><i class="el-icon-time"></i> 预计时长：{{ route.time }}</span>
       </div>
