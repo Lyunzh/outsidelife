@@ -55,7 +55,7 @@ const router = createRouter({
       component: SpotView
     },
     {
-      path: '/admin/reports',
+      path: '/admincenter',
       name: 'reportManage',
       component: ReportManageView,
       meta: { requiresAdmin: true }
