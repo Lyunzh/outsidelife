@@ -1,46 +1,30 @@
-const API_KEY = process.env.VUE_APP_DASHSCOPE_API_KEY;
-const API_URL = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
+import OpenAI from "openai";
+// import Constants from './constants';
+
+// 创建 OpenAI 实例
+const openai = new OpenAI({
+  apiKey: "sk-d9edb991c8e24a9da544d4aa49a8b188",
+  baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+  dangerouslyAllowBrowser: true
+});
 
 export async function chatWithAI(message, history = []) {
   try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'X-DashScope-SSE': 'disable'
-      },
-      mode: 'cors',
-      credentials: 'omit',
-      body: JSON.stringify({
-        model: "qwen-turbo",
-        input: {
-          messages: [
-            { role: "system", content: "You are a helpful assistant." },
-            ...history.map(msg => ({
-              role: msg.role,
-              content: msg.content
-            })),
-            { role: "user", content: message }
-          ]
-        }
-      })
+    const completion = await openai.chat.completions.create({
+      model: "qwen-turbo",
+      messages: [
+        { role: "system", content: "You are a helpful assistant." },
+        ...history.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        })),
+        { role: "user", content: message }
+      ]
     });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'API request failed');
-    }
-
-    const data = await response.json();
-    if (data.error) {
-      throw new Error(data.error.message || 'API response error');
-    }
 
     return {
       data: {
-        content: data.output?.text || '抱歉，我暂时无法回答这个问题'
+        content: completion.choices[0].message.content || '抱歉，我暂时无法回答这个问题'
       }
     };
   } catch (error) {

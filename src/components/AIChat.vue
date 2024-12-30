@@ -1,12 +1,15 @@
 <template>
   <div class="ai-chat-container" :class="{ 'chat-expanded': isExpanded }">
-    <!-- 聊天图标/最小化按钮 -->
+    <!-- 聊天图标按钮 -->
     <div class="chat-toggle" @click="toggleChat">
       <div v-if="!isExpanded" class="ai-icon">
         <i class="el-icon-chat-line-round"></i>
-        <span class="ai-badge">AI</span>
+        <div class="ai-badge">AI</div>
+        <div class="pulse-ring"></div>
       </div>
-      <i v-else class="el-icon-minus"></i>
+      <div v-else class="exit-button">
+        <i class="el-icon-close exit-icon"></i>
+      </div>
     </div>
 
     <!-- 聊天窗口 -->
@@ -15,25 +18,26 @@
         <div class="header-content">
           <div class="header-left">
             <i class="el-icon-chat-line-round"></i>
-            <span>通义千问 AI 助手</span>
+            <span>智能旅游建议小助手</span>
+            <div class="status-dot"></div>
           </div>
           <div class="header-right">
-            <span class="ai-tag">AI</span>
-            <i class="el-icon-minus minimize-button" @click.stop="toggleChat"></i>
-            <i class="el-icon-close close-button" @click.stop="closeChat"></i>
+            <div class="exit-circle" @click.stop="closeChat">
+              <i class="el-icon-close"></i>
+            </div>
           </div>
         </div>
       </div>
       
-      <div class="chat-messages" ref="messageContainer">
+      <div class="chat-messages" ref="messageContainer" @scroll="handleScroll">
         <div v-for="(message, index) in messages" 
              :key="index" 
-             :class="['message', message.role]">
+             :class="['message', message.role, {'slide-in': message.isNew}]">
           <div class="message-content">{{ message.content }}</div>
         </div>
       </div>
 
-      <div class="chat-input">
+      <div class="chat-input-container">
         <el-input
           v-model="inputMessage"
           placeholder="请输入您的问题..."
@@ -58,6 +62,12 @@ import { chatWithAI } from '@/apis/ai';
 
 export default {
   name: 'AIChat',
+  props: {
+    context: {
+      type: Object,
+      default: () => ({})
+    }
+  },
   data() {
     return {
       isExpanded: false,
@@ -66,42 +76,45 @@ export default {
       messages: [
         {
           role: "assistant",
-          content: "您好！我是通义千问助手，有什么可以帮您的吗？"
+          content: this.getWelcomeMessage()
         }
       ]
     }
   },
   methods: {
-    toggleChat() {
-      this.isExpanded = !this.isExpanded;
+    getWelcomeMessage() {
+      if (this.context.type === 'route') {
+        return `您好！我是智能旅游建议小助手。我可以为您解答关于"${this.context.routeName}"路线的任何问题。`;
+      } else if (this.context.type === 'spot') {
+        return `您好！我是智能旅游建议小助手。我可以为您解答关于"${this.context.spotName}"景点的任何问题。`;
+      }
+      return "您好！我是智能旅游建议小助手，有什么可以帮您的吗？";
     },
-    closeChat() {
-      this.isExpanded = false;
-      this.messages = [
-        {
-          role: "assistant",
-          content: "您好！我是通义千问助手，有什么可以帮您的吗？"
-        }
-      ];
-    },
+    
     async sendMessage() {
       if (!this.inputMessage.trim() || this.isLoading) return;
 
       const userMessage = {
         role: "user",
-        content: this.inputMessage
+        content: this.inputMessage,
+        isNew: true
       };
       this.messages.push(userMessage);
 
-      const messageHistory = this.messages.slice(1);  // 排除欢迎消息
+      const messageHistory = this.messages.slice(1);
       this.inputMessage = '';
       this.isLoading = true;
 
       try {
-        const response = await chatWithAI(userMessage.content, messageHistory);
+        // 添加上下文信息到消息历史
+        const contextMessage = this.getContextMessage();
+        const messagesWithContext = contextMessage ? [contextMessage, ...messageHistory] : messageHistory;
+        
+        const response = await chatWithAI(userMessage.content, messagesWithContext);
         this.messages.push({
           role: "assistant",
-          content: response.data.content
+          content: response.data.content,
+          isNew: true
         });
       } catch (error) {
         console.error('Chat error:', error);
@@ -113,9 +126,47 @@ export default {
         });
       }
     },
+
+    getContextMessage() {
+      if (!this.context.type) return null;
+
+      let contextContent = '';
+      if (this.context.type === 'route') {
+        contextContent = `当前正在查看路线"${this.context.routeName}"。路线描述：${this.context.description}`;
+      } else if (this.context.type === 'spot') {
+        contextContent = `当前正在查看景点"${this.context.spotName}"。景点描述：${this.context.description}`;
+      }
+
+      return contextContent ? {
+        role: "system",
+        content: contextContent
+      } : null;
+    },
+    
+    toggleChat() {
+      this.isExpanded = !this.isExpanded;
+      if (this.isExpanded) {
+        this.$nextTick(() => {
+          this.scrollToBottom();
+        });
+      }
+    },
+    closeChat() {
+      this.isExpanded = false;
+    },
     scrollToBottom() {
       const container = this.$refs.messageContainer;
       container.scrollTop = container.scrollHeight;
+    },
+    handleScroll({ target }) {
+      const { scrollTop } = target;
+      
+      if (scrollTop === 0) {
+        this.loadHistoryMessages();
+      }
+    },
+    loadHistoryMessages() {
+      console.log('Loading history messages...');
     }
   }
 }
@@ -128,39 +179,35 @@ export default {
   top: 50%;
   transform: translateY(-50%);
   z-index: 1000;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
 }
 
 .chat-toggle {
   width: 60px;
   height: 60px;
-  border-radius: 30px 0 0 30px; /* 修改为半圆形 */
-  background: linear-gradient(135deg, #409EFF, #007FFF);
+  border-radius: 30px 0 0 30px;
+  background: linear-gradient(135deg, #2B32B2, #1488CC);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: -2px 0 12px rgba(0, 127, 255, 0.3);
-  transition: all 0.3s ease;
   cursor: pointer;
-}
-
-.chat-toggle:hover {
-  width: 70px; /* 悬浮时稍微展开 */
-  box-shadow: -4px 0 16px rgba(0, 127, 255, 0.4);
+  position: relative;
+  overflow: hidden;
 }
 
 .ai-icon {
   position: relative;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 100%;
 }
 
 .ai-icon i {
   font-size: 28px;
-  opacity: 0.9;
+  z-index: 2;
 }
 
 .ai-badge {
@@ -168,158 +215,184 @@ export default {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: #F56C6C;
+  background: #FF4D4F;
   color: white;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 12px;
   font-weight: bold;
-  box-shadow: 0 2px 4px rgba(245, 108, 108, 0.4);
-  border: 2px solid white;
-  z-index: 1;
+  z-index: 2;
+}
+
+.pulse-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.5;
+  }
 }
 
 .chat-window {
   position: absolute;
   top: 50%;
-  right: 70px; /* 调整位置，与按钮有一定间距 */
+  right: 70px;
   transform: translateY(-50%);
-  width: 350px;
-  height: 500px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  width: 450px;
+  height: 600px;
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
-  animation: slideIn 0.3s ease;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-50%) translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(-50%) translateX(0);
-  }
+  overflow: hidden;
 }
 
 .chat-header {
-  padding: 15px;
-  background: linear-gradient(135deg, #409EFF, #007FFF);
+  padding: 20px;
+  background: linear-gradient(135deg, #2B32B2, #1488CC);
   color: white;
-  border-radius: 8px 8px 0 0;
+  border-radius: 16px 16px 0 0;
+  position: relative;
 }
 
 .header-content {
   display: flex;
   align-items: center;
-  gap: 15px;
-  padding: 0 5px;
-  position: relative;
+  justify-content: space-between;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-left: 35px; /* 为关闭按钮留出空间 */
-  flex: 1;
+  gap: 12px;
 }
 
-.header-right {
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background: #52C41A;
+  border-radius: 50%;
+  position: relative;
+}
+
+.status-dot::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: inherit;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.exit-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
-  gap: 15px;
-}
-
-.ai-tag {
-  background-color: rgba(255, 255, 255, 0.2);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 12px;
-}
-
-.minimize-button,
-.close-button {
-  font-size: 18px;
+  justify-content: center;
   cursor: pointer;
-  padding: 5px;
-  border-radius: 50%;
   transition: all 0.3s ease;
 }
 
-.minimize-button:hover,
-.close-button:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  transform: scale(1.1);
-}
-
-.close-button:hover {
+.exit-circle:hover {
+  background: #FF4D4F;
   transform: rotate(90deg);
 }
 
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  background-color: #f5f7fa;
+.exit-circle i {
+  font-size: 20px;
+  color: white;
 }
 
 .message {
-  max-width: 80%;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  word-wrap: break-word;
+  max-width: 85%;
+  padding: 12px 16px;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .message.user {
-  align-self: flex-end;
-  background-color: #409EFF;
+  background: linear-gradient(135deg, #2B32B2, #1488CC);
   color: white;
   margin-left: 20%;
+  box-shadow: 0 4px 12px rgba(43, 50, 178, 0.2);
 }
 
 .message.assistant {
-  align-self: flex-start;
-  background-color: white;
+  background: white;
   color: #333;
   margin-right: 20%;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.chat-input {
+.chat-input-container {
+  position: relative;
+  flex-shrink: 0;
   padding: 15px;
-  border-top: 1px solid #eee;
   background-color: white;
-  border-radius: 0 0 8px 8px;
+  border-top: 1px solid #eee;
+  border-radius: 0 0 16px 16px;
+  z-index: 2;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.chat-input .el-input {
+.chat-input-container .el-input {
   margin-bottom: 0;
 }
 
 /* 修改展开状态的按钮样式 */
 .chat-expanded .chat-toggle {
-  width: 40px;
-  height: 40px;
-  border-radius: 20px 0 0 20px;
+  width: 50px;  /* 减小宽度使其更像一个图标 */
+  height: 50px;  /* 保持正方形 */
+  border-radius: 25px 0 0 25px;  /* 保持半圆形 */
   background: #F56C6C;
+  transition: all 0.3s ease;
+}
+
+.chat-expanded .chat-toggle:hover {
+  width: 90px;
+  background: #f78989;
 }
 
 .chat-expanded .chat-toggle i {
-  font-size: 20px;
+  font-size: 18px;
+  transition: transform 0.3s ease;
+}
+
+.chat-expanded .chat-toggle:hover i {
+  transform: rotate(90deg);
 }
 
 @media (max-width: 768px) {
+  .chat-expanded .chat-toggle {
+    width: 70px;
+  }
+  
   .chat-window {
-    width: calc(100vw - 80px); /* 减去按钮宽度和一些间距 */
-    right: 70px;
+    width: calc(100vw - 90px);
+    height: 80vh;
+    right: 80px;
   }
 }
 
@@ -329,16 +402,17 @@ export default {
 }
 
 .chat-messages::-webkit-scrollbar-track {
-  background: #f5f7fa;
+  background: transparent;
 }
 
 .chat-messages::-webkit-scrollbar-thumb {
-  background: #909399;
+  background: rgba(144, 147, 153, 0.3);
   border-radius: 3px;
+  transition: background 0.3s;
 }
 
 .chat-messages::-webkit-scrollbar-thumb:hover {
-  background: #606266;
+  background: rgba(144, 147, 153, 0.5);
 }
 
 /* 确保聊天窗口在拖动时不会移动 */
@@ -359,5 +433,71 @@ export default {
 
 .ai-chat-container > * {
   pointer-events: auto; /* 恢复子元素的事件 */
+}
+
+.exit-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: #F56C6C;
+  border-radius: 20px 0 0 20px;
+  transition: all 0.3s ease;
+}
+
+.exit-button:hover {
+  background-color: #ff4d4f;
+  transform: scale(1.05);
+}
+
+.exit-icon {
+  font-size: 24px;
+  color: white;
+  transform: scale(1.2);
+  transition: all 0.3s ease;
+}
+
+.exit-button:hover .exit-icon {
+  transform: scale(1.4) rotate(180deg);
+}
+
+/* 消息滑入动画 */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message.slide-in {
+  animation: slideIn 0.3s ease forwards;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  background-color: #f5f7fa;
+  min-height: 0;
+}
+
+/* 消息容器的滚动阴影效果 */
+.chat-messages::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: linear-gradient(to top, rgba(245, 247, 250, 1), rgba(245, 247, 250, 0));
+  pointer-events: none;
 }
 </style> 

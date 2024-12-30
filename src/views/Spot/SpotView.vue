@@ -1,5 +1,13 @@
 <template>
   <div class="spot-container">
+    <!-- 修改返回按钮 -->
+    <div class="back-button" @click="goBack">
+      <el-button type="primary">
+        <i class="el-icon-arrow-left"></i>
+        <span>返回景点列表</span>
+      </el-button>
+    </div>
+
     <!-- 景点图片展示区 -->
     <div class="spot-image-section">
       <el-carousel height="400px">
@@ -35,7 +43,20 @@
         </div>
       </template>
       <el-collapse>
-        <el-collapse-item v-for="route in routes" :key="route.id" :title="route.name">
+        <el-collapse-item 
+          v-for="route in routes" 
+          :key="route.id" 
+          :title="route.name"
+          :name="route.id">
+          <template #title>
+            <div class="route-preview">
+              <span class="route-name">{{ route.name }}</span>
+              <span class="route-brief">
+                <i class="el-icon-time"></i> 预计时间：{{ route.time }} |
+                <i class="el-icon-location"></i> {{ route.description.substring(0, 30) }}...
+              </span>
+            </div>
+          </template>
           <div @click="getRouteDetail(route.routeId)" class="route-info">
             <div class="route-basic-info">
               <span class="route-duration">
@@ -58,6 +79,9 @@
         </el-collapse-item>
       </el-collapse>
     </el-card>
+
+    <!-- 添加 AI 聊天组件 -->
+    <AIChat />
   </div>
 </template>
 
@@ -66,9 +90,13 @@ import { ref } from 'vue';
 import { getSpotDetails, getSpotRoutes } from '@/apis/spot';
 import { basePicturesPath } from '@/utils/alldata';
 import { getUserIdentity } from '@/apis/identity';
+import AIChat from '@/components/AIChat.vue';
 
 export default {
   name: 'SpotView',
+  components: {
+    AIChat
+  },
   data() {
     return {
       spotId: null,
@@ -191,6 +219,10 @@ export default {
         // 使用模拟数据
         this.userIdentity = this.mockUserIdentity;
       }
+    },
+
+    goBack() {
+      this.$router.go(-1);
     }
   },
 
@@ -276,5 +308,91 @@ export default {
 .route-steps ol {
   padding-left: 20px;
   line-height: 1.8;
+}
+
+.back-button {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 100;
+}
+
+.back-button .el-button {
+  padding: 12px 20px;
+  font-size: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.back-button .el-button i {
+  margin: 0;
+}
+
+.back-button .el-button span {
+  display: inline-block;
+  text-align: center;
+}
+
+.back-button .el-button:hover {
+  transform: translateX(-5px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.route-preview {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 5px 0;
+}
+
+.route-name {
+  font-weight: bold;
+  color: #303133;
+  min-width: 120px;
+}
+
+.route-brief {
+  color: #909399;
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.route-brief i {
+  margin-right: 4px;
+  color: #409EFF;
+}
+
+/* 修改折叠面板的样式 */
+:deep(.el-collapse-item__header) {
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+:deep(.el-collapse-item__header:hover) {
+  background-color: #f0f2f5;
+}
+
+:deep(.el-collapse-item__content) {
+  padding: 20px;
+}
+
+/* 添加鼠标悬停效果 */
+.route-info {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.route-info:hover {
+  background-color: #f8f9fa;
+  border-radius: 4px;
 }
 </style>

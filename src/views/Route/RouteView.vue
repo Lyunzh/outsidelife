@@ -1,5 +1,13 @@
 <template>
   <div class="route-container">
+    <!-- 修改返回按钮 -->
+    <div class="back-button" @click="goBack">
+      <el-button type="primary">
+        <i class="el-icon-arrow-left"></i>
+        <span>返回景点详情</span>
+      </el-button>
+    </div>
+
     <!-- 路线基本信息 -->
     <el-card class="route-info-card">
       <p class="route-description">{{ route.description }}</p>
@@ -132,7 +140,8 @@
       </template>
     </el-dialog>
 
-
+    <!-- 添加 AI 聊天组件 -->
+    <AIChat />
   </div>
 </template>
 
@@ -141,9 +150,13 @@ import { getRouteDetails } from '@/apis/route';
 import { createTeam, getTeamsByRouteId, joinTeam, reportTeam } from '@/apis/team';
 import AMapLoader from "@amap/amap-jsapi-loader";
 import { parseLocation } from '@/utils/coordTransform';
+import AIChat from '@/components/AIChat.vue';
 
 export default {
   name: 'RouteView',
+  components: {
+    AIChat
+  },
   data() {
     return {
       route: {
@@ -333,6 +346,8 @@ export default {
           defaultCursor: "pointer",
           showIndoorMap: false,
           showBuildingBlock: true,
+          pitch: 55,
+          rotation: -45,
           zoom: 16,
           zooms: [5, 20],
           center: parseLocation(this.route.nodes[0].location) // 以第一个节点为中心
@@ -423,6 +438,10 @@ export default {
       } catch (error) {
         console.error('地图初始化失败:', error);
       }
+    },
+
+    goBack() {
+      this.$router.go(-1);
     }
   },
 
@@ -613,6 +632,38 @@ export default {
   height: 500px;
   border-radius: 4px;
   overflow: hidden;
+}
+
+.back-button {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 100;
+}
+
+.back-button .el-button {
+  padding: 12px 20px;
+  font-size: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.back-button .el-button i {
+  margin: 0;
+}
+
+.back-button .el-button span {
+  display: inline-block;
+  text-align: center;
+}
+
+.back-button .el-button:hover {
+  transform: translateX(-5px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 </style>
 
