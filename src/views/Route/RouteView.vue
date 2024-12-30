@@ -240,6 +240,7 @@ export default {
       },
       map: null,
       markers: [],
+      walkingInstances: []
     }
   },
   methods: {
@@ -324,6 +325,64 @@ export default {
       }
     },
 
+    async createMultiSegmentRoute(points, AMap) {
+      return new Promise((resolve) => {
+        this.map.plugin(["AMap.Walking"], () => {
+          let totalDistance = 0;
+          let totalTime = 0;
+          const colors = ["#3366FF", "#FF3366", "#33FF66", "#6633FF", "#FF6633"];
+          const maxRetries = 3;
+
+          // 创建所有导航实例
+          for (let i = 0; i < points.length - 1; i++) {
+            const walkingInstance = new AMap.Walking({
+              map: this.map,
+              hideMarkers: true,
+              strokeColor: colors[i % colors.length],
+              strokeWeight: 6
+            });
+            this.walkingInstances.push(walkingInstance);
+          }
+
+          // 递归处理每段路线
+          const processSegment = (segmentIndex, retryCount = 0) => {
+            if (segmentIndex >= points.length - 1) {
+              resolve({
+                totalDistance,
+                totalTime,
+                segments: points.length - 1
+              });
+              return;
+            }
+
+            this.walkingInstances[segmentIndex].search(
+              points[segmentIndex],
+              points[segmentIndex + 1],
+              (status, result) => {
+                if (status === 'complete') {
+                  totalDistance += result.routes[0].distance;
+                  totalTime += result.routes[0].time;
+                  processSegment(segmentIndex + 1);
+                } else {
+                  if (retryCount < maxRetries) {
+                    setTimeout(() => {
+                      console.log(`第${segmentIndex + 1}段路线规划失败，正在进行第${retryCount + 1}次重试...`);
+                      processSegment(segmentIndex, retryCount + 1);
+                    }, 1000);
+                  } else {
+                    this.$message.error(`第${segmentIndex + 1}段路线规划失败，已重试${maxRetries}次`);
+                    resolve(null);
+                  }
+                }
+              }
+            );
+          };
+
+          processSegment(0);
+        });
+      });
+    },
+
     async initMap() {
       window._AMapSecurityConfig = {
         securityJsCode: "85c67bb02b04c0775ec33200f09cee35",
@@ -333,7 +392,7 @@ export default {
         const AMap = await AMapLoader.load({
           key: "805421f5522082b95ad7d79e57065023",
           version: "2.0",
-          plugins: ["AMap.Scale", "AMap.InfoWindow", "AMap.Driving", "AMap.ElasticMarker"],
+          plugins: ["AMap.Scale", "AMap.InfoWindow", "AMap.ElasticMarker"],
         });
 
         // 初始化地图
@@ -353,25 +412,29 @@ export default {
           center: parseLocation(this.route.nodes[0].location) // 以第一个节点为中心
         });
 
-        // 为每个节点创建标记
-        this.route.nodes.forEach((node, index) => {
+        // 处理路线节点
+        const routePoints = this.route.nodes.map((node, index) => {
           const position = parseLocation(node.location);
           
-          // 根据节点类型选择默认图标
-          const defaultIcon = {
-            img: index === 0 ? 
-              "https://webapi.amap.com/theme/v1.3/markers/n/start.png" :
-              index === this.route.nodes.length - 1 ? 
-              "https://webapi.amap.com/theme/v1.3/markers/n/end.png" :
-              "https://webapi.amap.com/theme/v1.3/markers/n/mark_r.png",
-            size: [25, 34],
-            anchor: "bottom-center"
-          };
-
+          // 创建标记点
           const marker = new AMap.ElasticMarker({
             position: position,
             styles: [{
-              icon: defaultIcon,
+              icon: {
+                img: index === 0 ? 
+                  "https://webapi.amap.com/theme/v1.3/markers/n/start.png" :
+                  index === this.route.nodes.length - 1 ? 
+                  "https://webapi.amap.com/theme/v1.3/markers/n/end.png" :
+                  "https://webapi.amap.com/theme/v1.3/markers/n/mark_r.png",
+                size: [36, 36],
+                anchor: "bottom-center",
+                imageOffset: [0, 0],
+                fitZoom: 14,
+                clickable: true,
+                scaleFactor: 2,
+                maxScale: 2,
+                minScale: 1,
+              },
               label: {
                 content: `${index + 1}. ${node.spotName}`,
                 position: "BM",
@@ -398,45 +461,30 @@ export default {
           });
 
           this.markers.push(marker);
+          return position;
         });
 
-        // 创建路线导航
-        const driving = new AMap.Driving({
-          map: this.map,
-          hideMarkers: true,  // 隐藏默认标记，使用我们自定义的标记
-          autoFitView: true
-        });
-
-        // 规划路线
-        if (this.route.nodes.length > 1) {
-          driving.search(
-            parseLocation(this.route.nodes[0].location),  // 起点
-            parseLocation(this.route.nodes[this.route.nodes.length - 1].location),  // 终点
-            {
-              waypoints: this.route.nodes.slice(1, -1).map(node => parseLocation(node.location))  // 途经点
-            },
-            (status, result) => {
-              if (status === 'complete') {
-                const infoWindow = new AMap.InfoWindow({
-                  content: `<div style="padding:10px;">
-                            <h4>${this.route.routeName}</h4>
-                            <p>总距离：${(result.routes[0].distance / 1000).toFixed(2)}公里</p>
-                            <p>预计时间：${this.route.time}</p>
-                           </div>`,
-                  offset: new AMap.Pixel(0, -30)
-                });
-                infoWindow.open(this.map, parseLocation(this.route.nodes[0].location));
-              }
-            }
-          );
-        }
-
-        // 添加所有标记
         this.map.add(this.markers);
         this.map.setFitView();
 
+        // 创建导航路线
+        const routeInfo = await this.createMultiSegmentRoute(routePoints, AMap);
+        
+        if (routeInfo) {
+          const infoWindow = new AMap.InfoWindow({
+            content: `<div style="padding:10px;">
+                      <h4>${this.route.routeName}</h4>
+                      <p>总距离：${(routeInfo.totalDistance / 1000).toFixed(2)}公里</p>
+                      <p>预计时间：${Math.ceil(routeInfo.totalTime / 60)}分钟</p>
+                     </div>`,
+            offset: new AMap.Pixel(0, -30)
+          });
+          infoWindow.open(this.map, routePoints[0]);
+        }
+
       } catch (error) {
         console.error('地图初始化失败:', error);
+        this.$message.error('地图加载失败，请稍后重试');
       }
     },
 
@@ -460,7 +508,7 @@ export default {
     if (this.routeId) {
       await this.fetchRouteData(this.routeId);
       await this.fetchTeams(this.routeId);
-      await this.initMap();  // 添加地图初始化
+      await this.initMap();
     }
   },
 
@@ -468,6 +516,9 @@ export default {
     if (this.map) {
       if (this.markers.length > 0) {
         this.map.remove(this.markers);
+      }
+      if (this.walkingInstances.length > 0) {
+        this.walkingInstances.forEach(instance => instance.clear());
       }
       this.map.destroy();
       this.map = null;
