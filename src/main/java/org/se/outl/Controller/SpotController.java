@@ -42,4 +42,9 @@ public class SpotController {
         }
         return Result.success(spotService.getBikeSpot());
     }
+
+    @GetMapping("/{spotId}")
+    public Result getSpotById(@PathVariable("spotId") int spotId) {
+        return Result.success(spotService.getSpotById(spotId));
+    }
 }

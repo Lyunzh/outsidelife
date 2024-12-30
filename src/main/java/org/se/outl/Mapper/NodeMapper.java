@@ -11,6 +11,6 @@ import java.util.List;
 public interface NodeMapper {
 
 
-    @Select("select n.node_id as nodeId , n.description as description , n.name as name ,n.image_url as imageUrl, n.location as location , r.seq_cnt as seqCnt from node n inner join route_node r on n.node_id = r.node_id where r.route_id = #{routId}")
+    @Select("select n.node_id as nodeId , n.description as description , n.name as name ,n.image_url as imageUrl, n.location as location , r.seq_cnt as seqCnt from node n inner join route_node r on n.node_id = r.node_id where r.route_id = #{routeId}")
     List<NodeDto> getNodes(@Param("routeId")int routeId);
 }

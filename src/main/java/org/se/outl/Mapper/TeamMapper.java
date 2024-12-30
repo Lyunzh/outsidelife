@@ -27,7 +27,7 @@ public interface TeamMapper {
     void joinTeam(@Param("userId") int userId, @Param("teamId") int teamId);
     
     @Insert("INSERT INTO team (team_name, limitcnt, current_num, status, description, endtime) " +
-           "VALUES (#{team.teamName}, #{team.limitCnt}, 1, 'pending', #{team.description}, #{team.endtime})")
+           "VALUES (#{team.teamName}, #{team.limitCnt}, 1, 'active', #{team.description}, #{team.endtime})")
     void createTeam(@Param("userId") int userId, @Param("team") Team team);
     
     @Select("SELECT team_id FROM team WHERE team_name = #{teamName}")

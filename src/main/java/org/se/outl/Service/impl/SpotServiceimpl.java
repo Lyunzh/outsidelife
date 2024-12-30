@@ -31,5 +31,10 @@ public class SpotServiceimpl implements SpotService {
         return spotMapper.getHikeSpot();
     }
 
+    @Override
+    public  Spot getSpotById(int spotId)
+    {
+        return spotMapper.getSpotById(spotId);
+    }
 
 }

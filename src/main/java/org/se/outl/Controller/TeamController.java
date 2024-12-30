@@ -25,6 +25,7 @@ public class TeamController {
     public Result getteam(@PathVariable int routeId , @RequestHeader("Authorization") String token) {
         token = token.substring(7);
         Claims claims = JwtUtils.parseJwt(token);
+        log.info(claims.toString());
         int userId = claims.get("userId", Integer.class);
         return Result.success(teamService.getTeam(routeId,userId));
     }
@@ -43,6 +44,7 @@ public class TeamController {
     public Result create(@RequestBody Team team , @RequestHeader("Authorization") String token,@PathVariable int routeId) {
         token = token.substring(7);
         Claims claims = JwtUtils.parseJwt(token);
+
         int userId = claims.get("userId", Integer.class);
         teamService.createTeam(userId,routeId,team);
         return Result.success();
@@ -50,7 +52,7 @@ public class TeamController {
 
 
     @PostMapping("/report")
-    public Result report(@RequestParam("reportData") ReportData reportData) {
+    public Result report(@RequestBody ReportData reportData) {
         int teamId = reportData.getTeamId();
         String description = reportData.getDescription();
         teamService.reportTeam(teamId,description);

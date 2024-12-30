@@ -8,4 +8,5 @@ public interface SpotService {
     List<Spot> getRecentSpot();
     List<Spot> getHikeSpot();
     List<Spot> getBikeSpot();
+    Spot getSpotById(int id);
 }

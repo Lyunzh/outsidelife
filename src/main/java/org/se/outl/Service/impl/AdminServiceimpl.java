@@ -16,6 +16,14 @@ public class AdminServiceimpl implements AdminService {
     @Autowired
     private AdminMapper adminMapper;
 
+
+    @Override
+    public void adminRegister(Admin admin)
+    {
+        admin.setPassword(BCrypt.hashpw(admin.getPassword()));
+        adminMapper.adminRegister(admin);
+    }
+
     @Override
     public Admin adminlogin(String account , String password)
     {
@@ -26,4 +34,7 @@ public class AdminServiceimpl implements AdminService {
         }
         return null;
     }
+
+
+
 }

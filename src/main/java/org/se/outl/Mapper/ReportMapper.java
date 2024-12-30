@@ -17,7 +17,7 @@ public interface ReportMapper {
     @Update("update team set status = 'active' where team_id = #{teamId}")
     void activeReport(@Param("teamId") int teamId);
 
-    @Select("select t.team_name as teamName, rt.description as description ,t.team_id as teamId from team t inner join report_team rt on t.team_id = rt.team_id where t.tatus = 'pending'")
+    @Select("select t.team_name as teamName, rt.description as description ,t.team_id as teamId from team t inner join report_team rt on t.team_id = rt.team_id where t.status = 'pending'")
     List<ReportData> getReport();
 
 }

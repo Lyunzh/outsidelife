@@ -16,7 +16,7 @@ public interface RouteMapper {
     public Route getRoute(@Param("routeId") int routeId);
 
 
-    @Select("select r.* from route r inner join spot_route.s on r.route_id = s.route_id where s.spot_id = #{spotId}")
+    @Select("select r.* from route r inner join spot_route s on r.route_id = s.route_id where s.spot_id = #{spotId}")
     public List<Route> getSpotRoute(@Param("spotId") int spotId);
 
 

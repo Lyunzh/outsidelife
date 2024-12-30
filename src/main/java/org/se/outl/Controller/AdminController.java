@@ -50,4 +50,11 @@ public class AdminController {
 
 
     }
+
+
+    @PostMapping("/register")
+    public Result adminRegister(@RequestBody Admin admin){
+        adminService.adminRegister(admin);
+        return Result.success();
+    }
 }

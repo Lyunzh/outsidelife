@@ -24,7 +24,7 @@ public class RouteController {
         return Result.success(routeService.getSpotRoute(spotId));
     }
 
-    @GetMapping("/{ruoteId}")
+    @GetMapping("/{routeId}")
     public Result getRoute(@PathVariable int routeId) {
         log.info("getRoute routeId: {}", routeId);
         return Result.success(routeService.getRoute(routeId));
