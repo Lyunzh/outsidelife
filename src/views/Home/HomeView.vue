@@ -113,6 +113,11 @@ export default defineComponent({
           plugins: ["AMap.Scale", "AMap.InfoWindow", "AMap.ElasticMarker"],
         });
 
+        // 获取第一个景点的位置作为地图中心
+        const centerPosition = this.spots.length > 0 
+          ? parseLocation(this.spots[0].location)
+          : [121.215252, 31.286054];  // 默认中心点
+
         this.map = new AMap.Map("container", {
           mapStyle: "amap://styles/macaron",
           viewMode: "3D",
@@ -123,8 +128,8 @@ export default defineComponent({
           showIndoorMap: false,
           showBuildingBlock: true,
           zoom: 16,
-          zooms: [14, 20],
-          center: [121.215252, 31.286054],
+          zooms: [10, 20],
+          center: centerPosition,  // 使用第一个景点的位置
         });
 
         this.markers = [];  // 清空标记数组
