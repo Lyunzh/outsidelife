@@ -256,12 +256,38 @@ export default {
 
 .spot-image-section {
   margin-bottom: 30px;
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%;  /* 16:9 的比例 */
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
 }
 
 .spot-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover;  /* 保持比例裁剪 */
+  object-position: center;  /* 居中裁剪 */
+}
+
+/* 如果使用 el-carousel，需要修改其样式 */
+:deep(.el-carousel) {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+:deep(.el-carousel__container) {
+  height: 100% !important;
+}
+
+:deep(.el-carousel__item) {
+  height: 100%;
 }
 
 .spot-info-section {

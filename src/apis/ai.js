@@ -13,7 +13,7 @@ export async function chatWithAI(message, history = []) {
     const completion = await openai.chat.completions.create({
       model: "qwen-turbo",
       messages: [
-        { role: "system", content: "You are a helpful assistant." },
+        { role: "system", content: "你是一个旅行导航，请给出旅行路线和地点的相关建议和描述." },
         ...history.map(msg => ({
           role: msg.role,
           content: msg.content

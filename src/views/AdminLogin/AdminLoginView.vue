@@ -42,7 +42,7 @@
       <div :class="active ===1?'card':'card active'">
         <div class="head">
           <div class="name">
-            javaee<span>论坛</span>
+            OutSideLife<span>论坛</span>
           </div>
         </div>
         <div class="desc">

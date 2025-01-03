@@ -26,6 +26,7 @@
     <el-card class="spots-list">
       <div v-for="spot in spots" :key="spot.spotId" class="spot-card" @click="goToSpot(spot.spotId)">
         <h3>{{ spot.spotName }}</h3>
+
         <p class="spot-preview">{{ spot.description?.substring(0, 20) || '' }}...</p>
       </div>
     </el-card>
@@ -94,12 +95,13 @@ export default defineComponent({
       try {
         const response = await getSpots();
         this.spots = response.data.data;
-        for(let one of this.spots){
-          
+        for (let one of this.spots) {
           one.imageUrl = basePicturesPath + one.imageUrl;
         }
+        console.log('获取到的景点数据:', this.spots);
         await this.initMap();
-      } catch(error) {
+      } catch (error) {
+        console.error('获取景点数据失败:', error);
         this.$message.error('获取景点数据失败');
         // 使用模拟数据
         this.spots = this.mockSpots;
@@ -404,6 +406,17 @@ export default defineComponent({
 .spot-card h3 {
   margin: 0 0 10px 0;
   color: #333;
+}
+
+.spot-image {
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%;  /* 16:9 的比例 */
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  object-fit: cover;  /* 保持比例裁剪 */
+  object-position: center;  /* 居中裁剪 */
 }
 
 .spot-preview {

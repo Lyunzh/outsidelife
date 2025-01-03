@@ -23,7 +23,19 @@
             v-for="node in route.nodes"
             :key="node.nodeId"
             :timestamp="node.time">
-            {{ node.description }}
+            <el-tooltip
+              effect="dark"
+              placement="top"
+              trigger="hover"
+            >
+              <template #content>
+                <div class="node-preview">
+                  <img :src="node.imageUrl" class="node-image" />
+                  <p>{{ node.description }}</p>
+                </div>
+              </template>
+              <span class="node-name">{{ node.name }}</span>
+            </el-tooltip>
           </el-timeline-item>
         </el-timeline>
       </div>
@@ -64,7 +76,7 @@
             <el-button 
               type="primary" 
               :disabled="team.currentMembers >= team.maxMembers || team.isJoined"
-              @click="joinTeam(team.id)">
+              @click="joinTeam(team.teamId)">
               {{ team.currentMembers >= team.maxMembers ? '人数已满' : (team.isJoined ? '已加入' : '加入团队') }}
             </el-button>
             <el-button 
@@ -146,6 +158,7 @@
 </template>
 
 <script>
+import { basePicturesPath } from '@/utils/alldata';
 import { getRouteDetails } from '@/apis/route';
 import { createTeam, getTeamsByRouteId, joinTeam, reportTeam } from '@/apis/team';
 import AMapLoader from "@amap/amap-jsapi-loader";
@@ -248,13 +261,22 @@ export default {
       try {
         const response = await getRouteDetails(routeId);
         this.route = response.data.data;
-      } catch(error) {
+
+        // 为每个节点添加完整的图片路径
+        this.route.nodes.forEach(node => {
+          node.imageUrl = basePicturesPath + node.imageUrl;
+        });
+      } catch (error) {
         this.$message.error('获取路线数据失败');
         
         // 使用模拟数据
         const foundRoute = this.mockRoutePool.find(route => route.routeId === Number(routeId));
         if (foundRoute) {
           this.route = foundRoute;
+          // 同样处理模拟数据的图片路径
+          this.route.nodes.forEach(node => {
+            node.imageUrl = basePicturesPath + node.imageUrl;
+          });
         } else {
           this.$message.error('未找到该路线');
           this.$router.push('/');
@@ -715,6 +737,35 @@ export default {
 .back-button .el-button:hover {
   transform: translateX(-5px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.node-name {
+  cursor: pointer;
+  text-decoration: underline;
+  color: #409EFF;
+}
+
+.node-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 150px;
+}
+
+.node-image {
+  width: 100px;  /* 固定宽度 */
+  height: 100px; /* 固定高度 */
+  object-fit: cover;  /* 保持比例裁剪 */
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  margin-bottom: 8px;
+}
+
+.node-preview p {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
 }
 </style>
 
