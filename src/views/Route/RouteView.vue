@@ -173,7 +173,6 @@ export default {
   data() {
     return {
       route: {
-        routeName: '',
         routeDescription: '',
         time: '',
         nodes: []
@@ -184,19 +183,18 @@ export default {
       mockRoutePool: [
         {
           routeId: 1,
-          routeName: "古猗园-佘山徒步线",
           routeDescription: "一条轻松的徒步路线，带您领略古猗园的园林之美",
           time: "2小时",
           nodes: [
             {
               spotId: 1,
-              spotName: "古猗园",
+              name: "古猗园",
               location: "121.212401, 31.282552",
               description: "路线起点，古猗园大门"
             },
             {
               spotId: 2,
-              spotName: "佘山",
+              name: "佘山",
               location: "121.218022, 31.280645",
               description: "路线终点，佘山景区入口"
             }
@@ -204,19 +202,18 @@ export default {
         },
         {
           routeId: 2,
-          routeName: "佘山-滨江公园线",
           routeDescription: "经典的佘山登山路线，包含主要景观点",
           time: "3小时",
           nodes: [
             {
               spotId: 2,
-              spotName: "佘山",
+              name: "佘山",
               location: "121.218022, 31.280645",
               description: "路线起点，佘山景区入口"
             },
             {
               spotId: 3,
-              spotName: "滨江森林公园",
+              name: "滨江森林公园",
               location: "121.21748, 31.285429",
               description: "路线终点，滨江森林公园入口"
             }
@@ -427,8 +424,8 @@ export default {
           defaultCursor: "pointer",
           showIndoorMap: false,
           showBuildingBlock: true,
-          pitch: 55,
-          rotation: -45,
+          // pitch: 55,
+          // rotation: -45,
           zoom: 16,
           zooms: [5, 20],
           center: parseLocation(this.route.nodes[0].location) // 以第一个节点为中心
@@ -458,7 +455,7 @@ export default {
                 minScale: 1,
               },
               label: {
-                content: `${index + 1}. ${node.spotName}`,
+                content: `${index + 1}. ${node.name}`,
                 position: "BM",
                 offset: [0, 5]
               }
@@ -474,8 +471,8 @@ export default {
           marker.on('click', () => {
             const infoWindow = new AMap.InfoWindow({
               content: `<div style="padding:10px;">
-                        <h4>${node.spotName}</h4>
-                        <p>${node.description}</p>
+                        <h4>${node.name}</h4>
+                        <p>${node.description || '暂无描述'}</p>
                        </div>`,
               offset: new AMap.Pixel(0, -30)
             });
@@ -495,7 +492,6 @@ export default {
         if (routeInfo) {
           const infoWindow = new AMap.InfoWindow({
             content: `<div style="padding:10px;">
-                      <h4>${this.route.routeName}</h4>
                       <p>总距离：${(routeInfo.totalDistance / 1000).toFixed(2)}公里</p>
                       <p>预计时间：${Math.ceil(routeInfo.totalTime / 60)}分钟</p>
                      </div>`,
